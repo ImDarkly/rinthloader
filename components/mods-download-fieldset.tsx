@@ -19,7 +19,6 @@ import {
 } from "./ui/select";
 import { Textarea } from "./ui/textarea";
 import { useState } from "react";
-import { downloadMods } from "@/actions/downloadMods";
 
 export default function ModsDownloadFieldset() {
 	const [modsList, setModsList] = useState("");
@@ -27,7 +26,7 @@ export default function ModsDownloadFieldset() {
 	const { versions } = useModrinthVersions();
 
 	return (
-		<div className="w-full max-w-md">
+		<div className="w-full max-w-md min-w-xs px-4">
 			<FieldSet>
 				<FieldGroup>
 					<Field>
