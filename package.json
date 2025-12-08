@@ -1,13 +1,12 @@
 {
     "name": "rinthloader",
-    "version": "0.1.5",
+    "version": "0.2.0",
     "private": true,
     "scripts": {
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint",
-        "test": "jest --config jest.config.cjs"
+        "lint": "eslint"
     },
     "dependencies": {
         "@radix-ui/react-checkbox": "^1.3.3",

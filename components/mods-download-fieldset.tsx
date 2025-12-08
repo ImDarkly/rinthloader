@@ -73,6 +73,7 @@ export default function ModsDownloadFieldset() {
 					<Field orientation="horizontal">
 						<Button
 							type="button"
+							disabled={!modsList || !gameVersion}
 							onClick={() => {
 								const params = new URLSearchParams({
 									modsList: modsList,

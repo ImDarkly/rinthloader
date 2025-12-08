@@ -1,28 +1,28 @@
 ### rinthloader
 
-Lightweight loader to simplify downloading Minecraft mods from Modrinth.
+> Lightweight loader to simplify downloading Minecraft mods from Modrinth.
 
-### Problem
+#### Problem
 
 Fatigue from constantly downloading separate versions of the same mods for every new Minecraft release.
 
-### Solution
+#### Solution
 
 An app where you can paste or write names of your favorite mods and download all of them for the same Minecraft version.
 
-### Features
+#### Features
 
 -   Write or paste a list of mods by name
 -   Select Minecraft version for mods
 -   Download all mods in a batch
 
-### Roadmap
+#### Roadmap
 
 1. Choose loader type (Forge, Fabric, etc.)
 2. Import mods to automatically detect names
 3. Enable/disable snapshots
 
-### Running Locally
+#### Running Locally
 
 1. Install dependencies using npm:
 
