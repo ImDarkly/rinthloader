@@ -14,6 +14,7 @@ import {
 	SelectGroup,
 	SelectItem,
 	SelectLabel,
+	SelectPositioner,
 	SelectTrigger,
 	SelectValue,
 } from "./ui/select";
@@ -37,6 +38,7 @@ export default function ModsDownloadFieldset() {
 							className="h-24 max-h-48"
 							value={modsList}
 							onChange={(e) => setModsList(e.target.value)}
+							spellCheck={false}
 						/>
 						<FieldDescription>
 							Enter the list of mods you want to include, one per
@@ -48,26 +50,31 @@ export default function ModsDownloadFieldset() {
 							Game Version
 						</FieldLabel>
 						<Select
-							onValueChange={setGameVersion}
+							onValueChange={(value) => {
+								if (value === null) return;
+								setGameVersion(value);
+							}}
 							value={gameVersion}
 						>
 							<SelectTrigger>
 								<SelectValue placeholder="Select version" />
 							</SelectTrigger>
 
-							<SelectContent>
-								<SelectGroup>
-									<SelectLabel>Releases</SelectLabel>
-									{versions.map((version) => (
-										<SelectItem
-											value={version.version}
-											key={version.version}
-										>
-											{version.version}
-										</SelectItem>
-									))}
-								</SelectGroup>
-							</SelectContent>
+							<SelectPositioner>
+								<SelectContent>
+									<SelectGroup>
+										<SelectLabel>Releases</SelectLabel>
+										{versions.map((version) => (
+											<SelectItem
+												value={version.version}
+												key={version.version}
+											>
+												{version.version}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</SelectPositioner>
 						</Select>
 					</Field>
 					<Field orientation="horizontal">
