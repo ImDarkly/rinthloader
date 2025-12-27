@@ -16,9 +16,7 @@ export function useModrinthVersions() {
 		fetch("https://api.modrinth.com/v2/tag/game_version")
 			.then((response) => response.json())
 			.then((data: Version[]) => {
-				setVersions(
-					data.filter((version) => version.version_type === "release")
-				);
+				setVersions(data.filter((v) => v.version_type === "release"));
 			})
 			.catch((error: Error) => setError(error))
 			.finally(() => setLoading(false));
