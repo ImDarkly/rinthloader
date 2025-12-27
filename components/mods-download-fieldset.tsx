@@ -30,6 +30,7 @@ export default function ModsDownloadFieldset() {
 							className="h-24 max-h-48"
 							value={modsList}
 							onChange={(e) => setModsList(e.target.value)}
+							spellCheck={false}
 						/>
 						<FieldDescription>
 							Enter the list of mods you want to include, one per
