@@ -1,5 +1,4 @@
 "use client";
-import { useModrinthVersions } from "@/hooks/use-modrinth-versions";
 import { Button } from "./ui/button";
 import {
 	Field,
@@ -8,22 +7,16 @@ import {
 	FieldLabel,
 	FieldSet,
 } from "./ui/field";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectTrigger,
-	SelectValue,
-} from "./ui/select";
 import { Textarea } from "./ui/textarea";
 import { useState } from "react";
+import { SelectLoader } from "./select-loader";
+import SelectGameVersion from "./select-game-version";
+import { useAppSelector } from "@/hooks/store";
 
 export default function ModsDownloadFieldset() {
 	const [modsList, setModsList] = useState("");
-	const [gameVersion, setGameVersion] = useState("");
-	const { versions } = useModrinthVersions();
+	const loader = useAppSelector((state) => state.loader.value);
+	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 
 	return (
 		<div className="w-full max-w-md min-w-xs px-4">
@@ -43,33 +36,8 @@ export default function ModsDownloadFieldset() {
 							line.
 						</FieldDescription>
 					</Field>
-					<Field>
-						<FieldLabel htmlFor="game-version">
-							Game Version
-						</FieldLabel>
-						<Select
-							onValueChange={setGameVersion}
-							value={gameVersion}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select version" />
-							</SelectTrigger>
-
-							<SelectContent>
-								<SelectGroup>
-									<SelectLabel>Releases</SelectLabel>
-									{versions.map((version) => (
-										<SelectItem
-											value={version.version}
-											key={version.version}
-										>
-											{version.version}
-										</SelectItem>
-									))}
-								</SelectGroup>
-							</SelectContent>
-						</Select>
-					</Field>
+					<SelectGameVersion />
+					<SelectLoader />
 					<Field orientation="horizontal">
 						<Button
 							type="button"
@@ -78,6 +46,7 @@ export default function ModsDownloadFieldset() {
 								const params = new URLSearchParams({
 									modsList: modsList,
 									gameVersion: gameVersion,
+									loader: loader,
 								});
 								window.location.href = `/api/download-mods?${params.toString()}`;
 							}}

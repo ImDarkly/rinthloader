@@ -4,8 +4,9 @@ export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
 	const modsList = searchParams.get("modsList") || "";
 	const gameVersion = searchParams.get("gameVersion") || "";
+	const loader = searchParams.get("loader") || "";
 
-	const nodeStream = await downloadMods(modsList, gameVersion);
+	const nodeStream = await downloadMods(modsList, gameVersion, loader);
 	console.log("nodeStream:", nodeStream);
 
 	const readableStream = new ReadableStream({
