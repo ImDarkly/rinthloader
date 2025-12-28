@@ -10,13 +10,13 @@ export const getProject = async (name: string) => {
 
 export const getUrl = async (
 	id: string,
-	loader: string,
+	modLoader: string,
 	gameVersion: string
 ) => {
 	const url = `https://api.modrinth.com/v2/project/${encodeURIComponent(
 		id
 	)}/version?loaders=["${encodeURIComponent(
-		loader
+		modLoader
 	)}"]&game_versions=["${encodeURIComponent(gameVersion)}"]`;
 	const response = await fetch(url);
 	const data = await response.json();

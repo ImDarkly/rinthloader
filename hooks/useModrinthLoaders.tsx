@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
 
-interface Loader {
+interface ModLoader {
 	name: string;
 }
 
 export function useModrinthLoaders() {
-	const [loaders, setLoaders] = useState<Loader[]>([]);
+	const [modLoaders, setModLoaders] = useState<ModLoader[]>([]);
 	const [error, setError] = useState<Error | null>(null);
-	const [loading, setLoading] = useState<boolean>(true);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 
 	useEffect(() => {
 		fetch("https://api.modrinth.com/v2/tag/loader")
 			.then((response) => response.json())
-			.then((data: Loader[]) => {
-				setLoaders(data);
+			.then((data: ModLoader[]) => {
+				setModLoaders(data);
 			})
 			.catch((error: Error) => setError(error))
-			.finally(() => setLoading(false));
+			.finally(() => setIsLoading(false));
 	}, []);
-	return { loaders, error, loading };
+	return { modLoaders, error, isLoading };
 }

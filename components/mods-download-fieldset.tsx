@@ -9,13 +9,13 @@ import {
 } from "./ui/field";
 import { Textarea } from "./ui/textarea";
 import { useState } from "react";
-import { SelectLoader } from "./select-loader";
+import { SelectModLoader } from "./select-mod-loader";
 import SelectGameVersion from "./select-game-version";
 import { useAppSelector } from "@/hooks/store";
 
 export default function ModsDownloadFieldset() {
 	const [modsList, setModsList] = useState("");
-	const loader = useAppSelector((state) => state.loader.value);
+	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 
 	return (
@@ -37,7 +37,7 @@ export default function ModsDownloadFieldset() {
 						</FieldDescription>
 					</Field>
 					<SelectGameVersion />
-					<SelectLoader />
+					<SelectModLoader />
 					<Field orientation="horizontal">
 						<Button
 							type="button"
@@ -46,7 +46,7 @@ export default function ModsDownloadFieldset() {
 								const params = new URLSearchParams({
 									modsList: modsList,
 									gameVersion: gameVersion,
-									loader: loader,
+									modLoader: modLoader,
 								});
 								window.location.href = `/api/download-mods?${params.toString()}`;
 							}}

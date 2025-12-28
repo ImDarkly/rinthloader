@@ -1,12 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import gameVersionReducer from "@/lib/features/gameVersionSlice";
-import loaderReducer from "@/lib/features/loaderSlice";
+import modLoaderReducer from "@/lib/features/modLoaderSlice";
+import modsListReducer from "@/lib/features/modsListSlice";
 
 export const makeStore = () => {
 	return configureStore({
 		reducer: {
 			gameVersion: gameVersionReducer,
-			loader: loaderReducer,
+			modLoader: modLoaderReducer,
+			modsList: modsListReducer,
 		},
 	});
 };

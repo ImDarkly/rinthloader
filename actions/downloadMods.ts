@@ -6,7 +6,7 @@ import { PassThrough } from "stream";
 export async function downloadMods(
 	modsList: string,
 	gameVersion: string,
-	loader: string,
+	modLoader: string,
 	onProgress?: (p: number) => void
 ) {
 	const mods = modsList
@@ -31,7 +31,7 @@ export async function downloadMods(
 			const projectId = await getProject(mod);
 			if (!projectId) continue;
 
-			const url = await getUrl(projectId, loader, gameVersion);
+			const url = await getUrl(projectId, modLoader, gameVersion);
 			if (!url) continue;
 
 			console.log("Downloading mod" + mod + " from URL: " + url);
