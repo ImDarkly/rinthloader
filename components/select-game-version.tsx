@@ -10,12 +10,23 @@ import {
 	SelectValue,
 } from "./ui/select";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { setGameVersion } from "@/lib/features/gameVersionSlice";
+import {
+	initializeLatestGameVersion,
+	setGameVersion,
+} from "@/lib/features/gameVersionSlice";
+import { Spinner } from "./ui/spinner";
+import { useEffect } from "react";
 
 export default function SelectGameVersion() {
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 	const dispatch = useAppDispatch();
-	const { versions } = useModrinthVersions();
+	const { versions, isLoading } = useModrinthVersions();
+
+	useEffect(() => {
+		if (!isLoading) {
+			dispatch(initializeLatestGameVersion(versions));
+		}
+	}, [versions, isLoading, dispatch]);
 
 	return (
 		<Field>
@@ -25,7 +36,9 @@ export default function SelectGameVersion() {
 				value={gameVersion}
 			>
 				<SelectTrigger id="game-version">
-					<SelectValue placeholder="Select version" />
+					<SelectValue>
+						{gameVersion || (isLoading ? <Spinner /> : gameVersion)}
+					</SelectValue>
 				</SelectTrigger>
 
 				<SelectContent>
