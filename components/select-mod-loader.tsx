@@ -17,31 +17,21 @@ export function SelectModLoader() {
 	const dispatch = useAppDispatch();
 	const { modLoaders } = useModrinthLoaders();
 
-	console.log("DEBUG:", {
-		reduxValue: modLoader,
-		apiData: modLoaders,
-		matchFound: modLoaders.some(
-			(m) => m.name.toLowerCase() === modLoader.toLowerCase()
-		),
-	});
-
 	return (
 		<Field>
 			<FieldLabel htmlFor="modLoader">Mod loader</FieldLabel>
 			<Select
 				onValueChange={(value) => {
-					console.log("User selected:", value);
 					dispatch(setModLoader(value));
 				}}
 				value={modLoader}
 			>
 				<SelectTrigger id="modLoader">
-					<SelectValue placeholder="Select mod loader" />
+					<SelectValue data-placeholder="Select mod loader" />
 				</SelectTrigger>
 
 				<SelectContent>
 					<SelectGroup>
-						<SelectLabel>Releases</SelectLabel>
 						{modLoaders.map((modLoader) => (
 							<SelectItem
 								value={modLoader.name}

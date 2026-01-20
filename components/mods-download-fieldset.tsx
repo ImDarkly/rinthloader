@@ -17,6 +17,7 @@ export default function ModsDownloadFieldset() {
 	const [modsList, setModsList] = useState("");
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
+	const isReady = modsList && gameVersion && modLoader;
 
 	return (
 		<div className="w-full max-w-md min-w-xs px-4">
@@ -41,8 +42,10 @@ export default function ModsDownloadFieldset() {
 					<Field orientation="horizontal">
 						<Button
 							type="button"
-							disabled={!modsList || !gameVersion}
+							disabled={!isReady}
 							onClick={() => {
+								if (!isReady) return;
+
 								const params = new URLSearchParams({
 									modsList: modsList,
 									gameVersion: gameVersion,

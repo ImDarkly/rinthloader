@@ -10,7 +10,7 @@ interface Version {
 export function useModrinthVersions() {
 	const [versions, setVersions] = useState<Version[]>([]);
 	const [error, setError] = useState<Error | null>(null);
-	const [loading, setLoading] = useState<boolean>(true);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 
 	useEffect(() => {
 		fetch("https://api.modrinth.com/v2/tag/game_version")
@@ -21,7 +21,7 @@ export function useModrinthVersions() {
 				);
 			})
 			.catch((error: Error) => setError(error))
-			.finally(() => setLoading(false));
+			.finally(() => setIsLoading(false));
 	}, []);
-	return { versions, error, loading };
+	return { versions, error, isLoading };
 }
