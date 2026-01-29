@@ -4,13 +4,14 @@ import { Input } from "../ui/input";
 import { getModNames } from "@/lib/mod-detector";
 
 export default function AutoModsImport() {
-	const [mods, setMods] = useState();
+	const [modNames, setModNames] = useState<string[]>([]);
 
 	const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
+		const files = e.target.files ? Array.from(e.target.files) : [];
+		if (!files.length) return;
 
-		setMods(result);
+		const result = await getModNames(files);
+		setModNames(result);
 	};
 
 	return (
@@ -21,9 +22,10 @@ export default function AutoModsImport() {
 					id="mod"
 					type="file"
 					accept=".jar"
+					multiple
 					onChange={handleFile}
 				/>
-				{mods}
+				{modNames}
 			</div>
 			<FieldDescription>
 				Click to upload. Only Fabric mods supported.

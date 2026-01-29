@@ -1,22 +1,23 @@
 import JSZip from "jszip";
 
 export async function getModNames(files: File[]): Promise<string[]> {
-	const mods: string[] = [];
+	const modNames: string[] = [];
+
 	for (const file of files) {
-		const buffer = await file.arrayBuffer();
-		const zip = await JSZip.loadAsync(buffer);
-	}
-	let zip: JSZip;
+		try {
+			const buffer = await file.arrayBuffer();
+			const zip = await JSZip.loadAsync(buffer);
 
-	const file = zip.file("fabric.mod.json");
-	if (!file) return [];
+			const fabricFile = zip.file("fabric.mod.json");
+			if (!fabricFile) continue;
 
-	try {
-		const content = await file.async("string");
-		const data = JSON.parse(content);
-		const name = data.name ?? data.id;
-		return name;
-	} catch {
-		return [];
+			const content = await fabricFile.async("string");
+			const data = JSON.parse(content);
+			const name = data.name ?? data.id;
+			if (name) modNames.push(name);
+		} catch {
+			continue;
+		}
 	}
+	return modNames;
 }
