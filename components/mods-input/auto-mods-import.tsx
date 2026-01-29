@@ -38,7 +38,7 @@ export default function AutoModsImport() {
 								<ItemTitle>{mod}</ItemTitle>
 							</ItemContent>
 							<ItemActions>
-								<Button></Button>
+								<Button variant="destructive">Remove</Button>
 							</ItemActions>
 						</Item>
 					))}
