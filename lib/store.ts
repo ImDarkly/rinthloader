@@ -1,16 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit";
 import gameVersionReducer from "@/lib/features/gameVersionSlice";
 import modLoaderReducer from "@/lib/features/modLoaderSlice";
-import modsListReducer from "@/lib/features/modNamesListSlice";
+import modNamesListReducer from "@/lib/features/modNamesListSlice";
 
 export const makeStore = () => {
-	return configureStore({
-		reducer: {
-			gameVersion: gameVersionReducer,
-			modLoader: modLoaderReducer,
-			modsList: modsListReducer,
-		},
-	});
+    return configureStore({
+        reducer: {
+            gameVersion: gameVersionReducer,
+            modLoader: modLoaderReducer,
+            modNamesList: modNamesListReducer,
+        },
+    });
 };
 
 export type AppStore = ReturnType<typeof makeStore>;

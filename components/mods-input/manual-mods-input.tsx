@@ -1,30 +1,41 @@
 import { Field, FieldDescription, FieldLabel } from "../ui/field";
 import { Textarea } from "../ui/textarea";
-import { setModsList } from "@/lib/features/modNamesListSlice";
+import { setModNamesList } from "@/lib/features/modNamesListSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
+import { useEffect, useState } from "react";
 
 export default function ManualModsInput() {
-	const dispatch = useAppDispatch();
-	const modsList = useAppSelector((state) => state.modsList.value);
+    const dispatch = useAppDispatch();
+    const modsList = useAppSelector((state) => state.modNamesList.modNames);
+    const [localValue, setLocalValue] = useState(modsList.join("\n"));
 
-	function handleTextarea(e: React.ChangeEvent<HTMLTextAreaElement>) {
-		const value = e.target.value;
-		const array = value.split("\n");
-	}
+    useEffect(() => {
+        setLocalValue(modsList.join("\n"));
+    }, [modsList]);
 
-	return (
-		<Field>
-			<FieldLabel htmlFor="mods-list">Manual Input</FieldLabel>
-			<Textarea
-				id="mods-list"
-				rows={10}
-				className="h-24 resize-none"
-				value={modsList}
-				onChange={(e) => dispatch(setModsList(e.target.value))}
-			/>
-			<FieldDescription>
-				Enter the list of mods you want to include, one per line.
-			</FieldDescription>
-		</Field>
-	);
+    const handleBlur = () => {
+        const lines = localValue
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+        dispatch(setModNamesList(lines));
+    };
+
+    return (
+        <Field>
+            <FieldLabel htmlFor="mods-list">Manual Input</FieldLabel>
+            <Textarea
+                id="mods-list"
+                rows={10}
+                className="h-24 resize-none"
+                value={localValue}
+                onChange={(e) => setLocalValue(e.target.value)}
+                onBlur={handleBlur}
+            />
+            <FieldDescription>
+                Enter the list of mods you want to include, one per line.
+            </FieldDescription>
+        </Field>
+    );
 }
