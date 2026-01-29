@@ -14,6 +14,6 @@ const modsListSlice = createSlice({
 	},
 });
 
-export const setModsList = modsListSlice.actions;
+export const { setModsList } = modsListSlice.actions;
 
 export default modsListSlice.reducer;
