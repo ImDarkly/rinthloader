@@ -1,8 +1,5 @@
+import { ModLoader } from "@/lib/types";
 import { useState, useEffect } from "react";
-
-interface ModLoader {
-	name: string;
-}
 
 export function useModrinthLoaders() {
 	const [modLoaders, setModLoaders] = useState<ModLoader[]>([]);

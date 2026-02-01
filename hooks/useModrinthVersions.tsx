@@ -1,11 +1,5 @@
+import { Version } from "@/lib/types";
 import { useState, useEffect } from "react";
-
-interface Version {
-	version: string;
-	version_type: string;
-	date: string;
-	major: boolean;
-}
 
 export function useModrinthVersions() {
 	const [versions, setVersions] = useState<Version[]>([]);
@@ -17,7 +11,9 @@ export function useModrinthVersions() {
 			.then((response) => response.json())
 			.then((data: Version[]) => {
 				setVersions(
-					data.filter((version) => version.version_type === "release")
+					data.filter(
+						(version) => version.version_type === "release",
+					),
 				);
 			})
 			.catch((error: Error) => setError(error))
