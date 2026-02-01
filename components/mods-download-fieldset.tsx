@@ -5,7 +5,6 @@ import { SelectModLoader } from "./select-mod-loader";
 import SelectGameVersion from "./select-game-version";
 import { useAppSelector } from "@/hooks/store";
 import SwitchModsInput from "./mods-input/switch-mods-input";
-import ModNamesList from "./mods-input/mod-names-list";
 
 export default function ModsDownloadFieldset() {
     const modsList = useAppSelector((state) => state.modNamesList.modNames);
@@ -17,7 +16,6 @@ export default function ModsDownloadFieldset() {
         <div className="w-full max-w-md min-w-xs px-4">
             <FieldSet>
                 <FieldGroup>
-                    <ModNamesList />
                     <SwitchModsInput />
                     <SelectGameVersion />
                     <SelectModLoader />

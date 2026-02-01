@@ -10,8 +10,8 @@ export default function ModNamesList() {
     const dispatch = useDispatch();
 
     return (
-        <ScrollArea className="h-48">
-            <div className="flex flex-col justify-end h-full gap-1">
+        <ScrollArea className="max-h-24">
+            <div className="flex flex-col gap-1">
                 {modNames.map((mod) => (
                     <Item key={mod} variant="muted">
                         <ItemContent>

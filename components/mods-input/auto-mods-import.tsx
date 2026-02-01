@@ -4,6 +4,7 @@ import { Input } from "../ui/input";
 import { getModNames } from "@/lib/mod-detector";
 import { useDispatch } from "react-redux";
 import { setModNamesList } from "@/lib/features/modNamesListSlice";
+import ModNamesList from "./mod-names-list";
 
 export default function AutoModsImport() {
     const dispatch = useDispatch();
@@ -27,6 +28,7 @@ export default function AutoModsImport() {
                 multiple
                 onChange={handleFile}
             />
+
             <FieldDescription>
                 Click or drag to upload. Only Fabric mods supported.
             </FieldDescription>
