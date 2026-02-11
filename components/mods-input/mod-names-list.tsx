@@ -6,30 +6,30 @@ import { useDispatch } from "react-redux";
 import { removeModNameFromList } from "@/lib/features/modNamesListSlice";
 
 export default function ModNamesList() {
-    const modNames = useAppSelector((state) => state.modNamesList.modNames);
-    const dispatch = useDispatch();
+	const modNames = useAppSelector((state) => state.modNamesList.modNames);
+	const dispatch = useDispatch();
 
-    return (
-        <ScrollArea className="h-48">
-            <div className="flex flex-col justify-end h-full gap-1">
-                {modNames.map((mod) => (
-                    <Item key={mod} variant="muted">
-                        <ItemContent>
-                            <ItemTitle>{mod}</ItemTitle>
-                        </ItemContent>
-                        <ItemActions>
-                            <Button
-                                onClick={() => {
-                                    dispatch(removeModNameFromList(mod));
-                                }}
-                                variant="destructive"
-                            >
-                                Remove
-                            </Button>
-                        </ItemActions>
-                    </Item>
-                ))}
-            </div>
-        </ScrollArea>
-    );
+	return (
+		<ScrollArea className="h-12">
+			<div className="flex flex-col justify-end h-full gap-1">
+				{modNames.map((mod) => (
+					<Item key={mod} variant="muted">
+						<ItemContent>
+							<ItemTitle>{mod}</ItemTitle>
+						</ItemContent>
+						<ItemActions>
+							<Button
+								onClick={() => {
+									dispatch(removeModNameFromList(mod));
+								}}
+								variant="destructive"
+							>
+								Remove
+							</Button>
+						</ItemActions>
+					</Item>
+				))}
+			</div>
+		</ScrollArea>
+	);
 }
