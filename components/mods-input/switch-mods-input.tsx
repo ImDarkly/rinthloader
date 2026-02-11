@@ -4,20 +4,18 @@ import AutoModsImport from "./auto-mods-import";
 import ManualModsInput from "./manual-mods-input";
 
 export default function SwitchModsInput() {
-    return (
-        <Tabs defaultValue="account">
-            <TabsList>
-                <TabsTrigger value="manual">Manual</TabsTrigger>
-                <TabsTrigger value="auto">
-                    Auto<Badge>New</Badge>
-                </TabsTrigger>
-            </TabsList>
-            <TabsContent value="manual">
-                <ManualModsInput />
-            </TabsContent>
-            <TabsContent value="auto">
-                <AutoModsImport />
-            </TabsContent>
-        </Tabs>
-    );
+	return (
+		<Tabs defaultValue="auto">
+			<TabsList>
+				<TabsTrigger value="auto">Auto</TabsTrigger>
+				<TabsTrigger value="manual">Manual</TabsTrigger>
+			</TabsList>
+			<TabsContent value="auto">
+				<AutoModsImport />
+			</TabsContent>
+			<TabsContent value="manual">
+				<ManualModsInput />
+			</TabsContent>
+		</Tabs>
+	);
 }
