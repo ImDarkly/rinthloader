@@ -13,12 +13,11 @@ export default function ModsDownloadFieldset() {
 	const isReady = modsList && gameVersion && modLoader;
 
 	return (
-		<div className="w-full max-w-md min-w-xs px-4">
+		<div className="grid items-center h-full  w-md px-4">
 			<FieldSet>
 				<FieldGroup>
 					<SwitchModsInput />
 					<SelectGameVersion />
-					<SelectModLoader />
 					<Field orientation="horizontal">
 						<Button
 							type="button"
