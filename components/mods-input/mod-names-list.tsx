@@ -3,7 +3,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Item, ItemActions, ItemContent, ItemTitle } from "../ui/item";
 import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
-import { removeModNameFromList } from "@/lib/features/modNamesListSlice";
+import { removeModNameFromList } from "@/lib/slices/modNamesListSlice";
 
 export default function ModNamesList() {
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);

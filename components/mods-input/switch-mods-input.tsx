@@ -10,7 +10,7 @@ export default function SwitchModsInput() {
 				<TabsTrigger value="auto">Auto</TabsTrigger>
 				<TabsTrigger value="manual">Manual</TabsTrigger>
 			</TabsList>
-			<TabsContent value="auto">
+			<TabsContent value="auto" keepMounted>
 				<AutoModsImport />
 			</TabsContent>
 			<TabsContent value="manual">

@@ -1,18 +1,21 @@
 import { Input } from "../ui/input";
 import { getModNames } from "@/lib/mod-detector";
 import { useDispatch } from "react-redux";
-import { setModNamesList } from "@/lib/features/modNamesListSlice";
+import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 import { useDropzone } from "react-dropzone";
 import { useAppSelector } from "@/hooks/store";
+import { useState } from "react";
 
 export default function Dropzone() {
 	const dispatch = useDispatch();
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
+	const [uploadedFileCount, setUploadedFileCount] = useState(0);
 
 	const onDrop = async (files: File[]) => {
 		if (!files.length) return;
 		const result = await getModNames(files);
 		dispatch(setModNamesList(result));
+		setUploadedFileCount(files.length);
 	};
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -29,8 +32,8 @@ export default function Dropzone() {
 			<Input id="mod" className="h-8" {...getInputProps()} />
 			{isDragActive
 				? "Drop .jar files here"
-				: modNames.length !== 0
-					? `${modNames.length} mods uploaded`
+				: uploadedFileCount !== 0
+					? `${uploadedFileCount} mods uploaded`
 					: "Drag .jar files or click"}
 		</div>
 	);

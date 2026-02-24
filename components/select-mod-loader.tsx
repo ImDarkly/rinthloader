@@ -10,7 +10,7 @@ import {
 	SelectValue,
 } from "./ui/select";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { setModLoader } from "@/lib/features/modLoaderSlice";
+import { setModLoader } from "@/lib/slices/modLoaderSlice";
 
 export function SelectModLoader() {
 	const modLoader = useAppSelector((state) => state.modLoader.value);
