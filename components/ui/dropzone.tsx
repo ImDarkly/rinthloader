@@ -32,7 +32,7 @@ export default function Dropzone() {
 			<Input id="mod" className="h-8" {...getInputProps()} />
 			{isDragActive
 				? "Drop .jar files here"
-				: uploadedFileCount !== 0
+				: uploadedFileCount !== 0 && modNames.length !== 0
 					? `${uploadedFileCount} mods uploaded`
 					: "Drag .jar files or click"}
 		</div>

@@ -1,15 +1,15 @@
 import { useModrinthLoaders } from "@/hooks/useModrinthLoaders";
 import { Field, FieldLabel } from "../ui/field";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "../ui/select";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
+import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from "../ui/combobox";
 
 export function SelectModLoader() {
 	const modLoader = useAppSelector((state) => state.modLoader.value);
@@ -18,30 +18,29 @@ export function SelectModLoader() {
 
 	return (
 		<Field orientation="horizontal">
-			<FieldLabel htmlFor="modLoader">Mod loader</FieldLabel>
-			<Select
-				onValueChange={(value) => {
-					dispatch(setModLoader(value));
-				}}
+			<FieldLabel htmlFor="modLoader" className="whitespace-nowrap">
+				Mod loader
+			</FieldLabel>
+			<Combobox
+				items={modLoaders}
+				onValueChange={(value) => dispatch(setModLoader(value))}
 				value={modLoader}
 			>
-				<SelectTrigger id="modLoader">
-					<SelectValue data-placeholder="Select mod loader" />
-				</SelectTrigger>
-
-				<SelectContent>
-					<SelectGroup>
-						{modLoaders.map((modLoader) => (
-							<SelectItem
-								value={modLoader.name}
-								key={modLoader.name}
-							>
-								{modLoader.name}
-							</SelectItem>
-						))}
-					</SelectGroup>
-				</SelectContent>
-			</Select>
+				<ComboboxInput
+					className="max-w-32"
+					placeholder="Select a mod loader"
+				/>
+				<ComboboxContent>
+					<ComboboxEmpty>No mod loaders found.</ComboboxEmpty>
+					<ComboboxList>
+						{(item) => (
+							<ComboboxItem key={item.name} value={item.name}>
+								{item.name}
+							</ComboboxItem>
+						)}
+					</ComboboxList>
+				</ComboboxContent>
+			</Combobox>
 		</Field>
 	);
 }

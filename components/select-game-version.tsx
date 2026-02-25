@@ -16,14 +16,26 @@ import {
 } from "@/lib/slices/gameVersionSlice";
 import { Spinner } from "./ui/spinner";
 import { useEffect } from "react";
-import useSnapshotsEnabled from "@/hooks/useSnapshotsEnabled";
 import { useSnapshotsContext } from "@/app/page";
+import {
+	Combobox,
+	ComboboxCollection,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxGroup,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxLabel,
+	ComboboxList,
+} from "./ui/combobox";
 
 export default function SelectGameVersion() {
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 	const dispatch = useAppDispatch();
 	const { versions, isLoading } = useModrinthVersions();
 	const [isSnapshotsEnabled] = useSnapshotsContext();
+	const releases = versions.filter((v) => v.version_type === "release");
+	const snapshots = versions.filter((v) => v.version_type === "snapshot");
 
 	useEffect(() => {
 		if (!isLoading) {
@@ -34,50 +46,49 @@ export default function SelectGameVersion() {
 	return (
 		<Field>
 			<FieldLabel htmlFor="game-version">Game Version</FieldLabel>
-			<Select
+			<Combobox
+				items={versions}
 				onValueChange={(value) => dispatch(setGameVersion(value))}
 				value={gameVersion}
 			>
-				<SelectTrigger id="game-version">
-					<SelectValue>
-						{gameVersion || (isLoading ? <Spinner /> : gameVersion)}
-					</SelectValue>
-				</SelectTrigger>
-
-				<SelectContent>
-					<SelectGroup>
-						<SelectLabel>Releases</SelectLabel>
-						{versions.map(
-							(version) =>
-								version.version_type === "release" && (
-									<SelectItem
-										value={version.version}
-										key={version.version}
-										className={`${version.major ? "font-bold" : null}`}
-									>
-										{version.version}
-									</SelectItem>
-								),
-						)}
-					</SelectGroup>
-					{isSnapshotsEnabled && (
-						<SelectGroup>
-							<SelectLabel>Snapshots</SelectLabel>
-							{versions.map(
-								(version) =>
-									version.version_type === "snapshot" && (
-										<SelectItem
-											value={version.version}
-											key={version.version}
+				<ComboboxInput placeholder="Select a game version" />
+				<ComboboxContent>
+					<ComboboxEmpty>No verions found.</ComboboxEmpty>
+					<ComboboxList>
+						{releases.length > 0 && (
+							<ComboboxGroup items={releases}>
+								<ComboboxLabel>Releases</ComboboxLabel>
+								<ComboboxCollection>
+									{(item) => (
+										<ComboboxItem
+											key={item.version}
+											value={item.version}
 										>
-											{version.version}
-										</SelectItem>
-									),
-							)}
-						</SelectGroup>
-					)}
-				</SelectContent>
-			</Select>
+											{item.version}
+										</ComboboxItem>
+									)}
+								</ComboboxCollection>
+							</ComboboxGroup>
+						)}
+
+						{snapshots.length > 0 && isSnapshotsEnabled && (
+							<ComboboxGroup items={snapshots}>
+								<ComboboxLabel>Snapshots</ComboboxLabel>
+								<ComboboxCollection>
+									{(item) => (
+										<ComboboxItem
+											key={item.version}
+											value={item.version}
+										>
+											{item.version}
+										</ComboboxItem>
+									)}
+								</ComboboxCollection>
+							</ComboboxGroup>
+						)}
+					</ComboboxList>
+				</ComboboxContent>
+			</Combobox>
 		</Field>
 	);
 }
