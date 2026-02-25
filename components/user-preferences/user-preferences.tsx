@@ -1,5 +1,4 @@
 "use client";
-import { SelectModLoader } from "../select-mod-loader";
 import { Button } from "../ui/button";
 import {
 	Popover,
@@ -9,6 +8,8 @@ import {
 	PopoverTitle,
 	PopoverTrigger,
 } from "../ui/popover";
+import { SelectModLoader } from "./select-mod-loader";
+import ToggleSnapshots from "./toggle-snapshots";
 
 export default function UserPreferences() {
 	return (
@@ -24,6 +25,7 @@ export default function UserPreferences() {
 					</PopoverDescription>
 				</PopoverHeader>
 				<SelectModLoader />
+				<ToggleSnapshots />
 			</PopoverContent>
 		</Popover>
 	);

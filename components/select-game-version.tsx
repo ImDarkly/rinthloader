@@ -16,11 +16,14 @@ import {
 } from "@/lib/slices/gameVersionSlice";
 import { Spinner } from "./ui/spinner";
 import { useEffect } from "react";
+import useSnapshotsEnabled from "@/hooks/useSnapshotsEnabled";
+import { useSnapshotsContext } from "@/app/page";
 
 export default function SelectGameVersion() {
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 	const dispatch = useAppDispatch();
 	const { versions, isLoading } = useModrinthVersions();
+	const [isSnapshotsEnabled] = useSnapshotsContext();
 
 	useEffect(() => {
 		if (!isLoading) {
@@ -44,15 +47,35 @@ export default function SelectGameVersion() {
 				<SelectContent>
 					<SelectGroup>
 						<SelectLabel>Releases</SelectLabel>
-						{versions.map((version) => (
-							<SelectItem
-								value={version.version}
-								key={version.version}
-							>
-								{version.version}
-							</SelectItem>
-						))}
+						{versions.map(
+							(version) =>
+								version.version_type === "release" && (
+									<SelectItem
+										value={version.version}
+										key={version.version}
+										className={`${version.major ? "font-bold" : null}`}
+									>
+										{version.version}
+									</SelectItem>
+								),
+						)}
 					</SelectGroup>
+					{isSnapshotsEnabled && (
+						<SelectGroup>
+							<SelectLabel>Snapshots</SelectLabel>
+							{versions.map(
+								(version) =>
+									version.version_type === "snapshot" && (
+										<SelectItem
+											value={version.version}
+											key={version.version}
+										>
+											{version.version}
+										</SelectItem>
+									),
+							)}
+						</SelectGroup>
+					)}
 				</SelectContent>
 			</Select>
 		</Field>

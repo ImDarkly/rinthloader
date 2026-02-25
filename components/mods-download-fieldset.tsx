@@ -1,7 +1,6 @@
 "use client";
 import { Button } from "./ui/button";
 import { Field, FieldGroup, FieldSet } from "./ui/field";
-import { SelectModLoader } from "./select-mod-loader";
 import SelectGameVersion from "./select-game-version";
 import { useAppSelector } from "@/hooks/store";
 import SwitchModsInput from "./mods-input/switch-mods-input";

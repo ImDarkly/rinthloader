@@ -1,14 +1,13 @@
 import { useModrinthLoaders } from "@/hooks/useModrinthLoaders";
-import { Field, FieldLabel } from "./ui/field";
+import { Field, FieldLabel } from "../ui/field";
 import {
 	Select,
 	SelectContent,
 	SelectGroup,
 	SelectItem,
-	SelectLabel,
 	SelectTrigger,
 	SelectValue,
-} from "./ui/select";
+} from "../ui/select";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
 
@@ -18,7 +17,7 @@ export function SelectModLoader() {
 	const { modLoaders } = useModrinthLoaders();
 
 	return (
-		<Field>
+		<Field orientation="horizontal">
 			<FieldLabel htmlFor="modLoader">Mod loader</FieldLabel>
 			<Select
 				onValueChange={(value) => {
