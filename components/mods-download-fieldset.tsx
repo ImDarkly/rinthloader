@@ -1,7 +1,6 @@
 "use client";
 import { Button } from "./ui/button";
 import { Field, FieldGroup, FieldSet } from "./ui/field";
-import { SelectModLoader } from "./select-mod-loader";
 import SelectGameVersion from "./select-game-version";
 import { useAppSelector } from "@/hooks/store";
 import SwitchModsInput from "./mods-input/switch-mods-input";
@@ -13,12 +12,11 @@ export default function ModsDownloadFieldset() {
 	const isReady = modsList && gameVersion && modLoader;
 
 	return (
-		<div className="w-full max-w-md min-w-xs px-4">
+		<div className="grid items-center h-full  w-md px-4">
 			<FieldSet>
 				<FieldGroup>
 					<SwitchModsInput />
 					<SelectGameVersion />
-					<SelectModLoader />
 					<Field orientation="horizontal">
 						<Button
 							type="button"

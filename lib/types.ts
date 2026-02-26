@@ -8,3 +8,5 @@ export interface Version {
 export interface ModLoader {
 	name: string;
 }
+
+export type SnapshotsState = [boolean, (v: boolean) => void];

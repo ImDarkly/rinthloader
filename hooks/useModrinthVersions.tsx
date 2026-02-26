@@ -9,13 +9,7 @@ export function useModrinthVersions() {
 	useEffect(() => {
 		fetch("https://api.modrinth.com/v2/tag/game_version")
 			.then((response) => response.json())
-			.then((data: Version[]) => {
-				setVersions(
-					data.filter(
-						(version) => version.version_type === "release",
-					),
-				);
-			})
+			.then((data: Version[]) => setVersions(data))
 			.catch((error: Error) => setError(error))
 			.finally(() => setIsLoading(false));
 	}, []);

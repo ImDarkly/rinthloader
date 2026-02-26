@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { Version } from "../types";
 
 const initialState = {
 	value: null,
@@ -13,8 +14,13 @@ export const gameVersionSlice = createSlice({
 		},
 		initializeLatestGameVersion: (state, action) => {
 			const versions = action.payload;
-			if (versions?.length > 0 && !state.value) {
-				state.value = versions[0].version;
+			if (!versions?.length || state.value) return;
+
+			const latestRelease = versions.find(
+				(version: Version) => version.version_type === "release",
+			);
+			if (latestRelease) {
+				state.value = latestRelease.version;
 			}
 		},
 	},
