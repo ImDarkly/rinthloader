@@ -1,4 +1,3 @@
-import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import AutoModsImport from "./auto-mods-import";
 import ManualModsInput from "./manual-mods-input";
