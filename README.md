@@ -12,15 +12,16 @@ An app where you can paste or write names of your favorite mods and download all
 
 #### Features
 
--   Write or paste a list of mods by name
--   Select Minecraft version for mods
--   Download all mods in a batch
+- Write or paste a list of mods by name
+- Select Minecraft version for mods
+- Download all mods in a batch
+- Choose loader type (Forge, Fabric, etc.)
+- Import mods to automatically detect names
+- See full list of mod names
 
 #### Roadmap
 
-1. Choose loader type (Forge, Fabric, etc.)
-2. Import mods to automatically detect names
-3. Enable/disable snapshots
+1. Enable/disable snapshots
 
 #### Running Locally
 

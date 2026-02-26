@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import {
 	initializeLatestGameVersion,
 	setGameVersion,
-} from "@/lib/features/gameVersionSlice";
+} from "@/lib/slices/gameVersionSlice";
 import { Spinner } from "./ui/spinner";
 import { useEffect } from "react";
 
