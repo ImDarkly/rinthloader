@@ -18,10 +18,7 @@ An app where you can paste or write names of your favorite mods and download all
 - Choose loader type (Forge, Fabric, etc.)
 - Import mods to automatically detect names
 - See full list of mod names
-
-#### Roadmap
-
-1. Enable/disable snapshots
+- Enable/disable snapshots
 
 #### Running Locally
 

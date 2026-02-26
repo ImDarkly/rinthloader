@@ -1,17 +1,18 @@
-import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { RiExternalLinkLine } from "@remixicon/react";
 
 export default function Logo() {
     return (
-        <Link
+        <a
             className="flex flex-row group/logo"
             href="https://github.com/ImDarkly/rinthloader"
+            target="_blank"
         >
             <span className="text-primary">rinth</span>loader
-            <ExternalLink
-                className="invisible group-hover/logo:visible"
+            <RiExternalLinkLine
                 size={16}
+                className="invisible group-hover/logo:visible"
             />
-        </Link>
+        </a>
     );
 }
