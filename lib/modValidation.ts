@@ -2,6 +2,9 @@ export async function validateModSlugs(
   slugs: string[],
   concurrencyLimit = 5,
 ): Promise<{ valid: string[]; invalid: string[] }> {
+  if (concurrencyLimit <= 0) {
+    throw new Error("concurrencyLimit must be greater than 0");
+  }
   const valid: string[] = [];
   const invalid: string[] = [];
 
