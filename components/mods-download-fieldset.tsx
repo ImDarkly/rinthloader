@@ -16,7 +16,16 @@ export default function ModsDownloadFieldset() {
   const handleDownload = async () => {
     if (!isReady) return;
 
-    const { invalid } = await validateModSlugs(modsList);
+    const { invalid, errors } = await validateModSlugs(modsList);
+
+    if (errors.length > 0) {
+      toast.error("Network error", {
+        description:
+          "Failed to connect to Modrinth to validate: " + errors.join(", "),
+      });
+      return;
+    }
+
     if (invalid.length > 0) {
       toast.error("Mods not found", {
         description: invalid.join(", "),
