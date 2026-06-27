@@ -1,38 +1,35 @@
+import { getProject } from "@/lib/api";
+
 export async function validateModSlugs(
   slugs: string[],
   concurrencyLimit = 5,
-): Promise<{ valid: string[]; invalid: string[] }> {
+): Promise<{ valid: string[]; invalid: string[]; errors: string[] }> {
   if (concurrencyLimit <= 0) {
     throw new Error("concurrencyLimit must be greater than 0");
   }
   const valid: string[] = [];
   const invalid: string[] = [];
+  const errors: string[] = [];
 
-  // Throttle API calls to maintain performance while avoiding Modrinth rate limits.
   for (let i = 0; i < slugs.length; i += concurrencyLimit) {
     const chunk = slugs.slice(i, i + concurrencyLimit);
     const results = await Promise.all(
       chunk.map(async (slug) => {
         try {
-          const response = await fetch(
-            `https://api.modrinth.com/v2/project/${encodeURIComponent(slug)}`,
-          );
-          return { slug, isValid: response.ok };
+          const projectId = await getProject(slug);
+          return { slug, status: projectId ? "valid" : "invalid" };
         } catch {
-          // Fail closed to ensure only verified mods proceed if connectivity issues occur.
-          return { slug, isValid: false };
+          return { slug, status: "error" };
         }
       }),
     );
 
     for (const result of results) {
-      if (result.isValid) {
-        valid.push(result.slug);
-      } else {
-        invalid.push(result.slug);
-      }
+      if (result.status === "valid") valid.push(result.slug);
+      else if (result.status === "invalid") invalid.push(result.slug);
+      else errors.push(result.slug);
     }
   }
 
-  return { valid, invalid };
+  return { valid, invalid, errors };
 }
