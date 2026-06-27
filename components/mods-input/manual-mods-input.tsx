@@ -12,6 +12,7 @@ export default function ManualModsInput() {
   const modsList = useAppSelector((state) => state.modNamesList.modNames);
   const [localValue, setLocalValue] = useState(modsList.join("\n"));
   const isEditingRef = useRef(false);
+  const blurValidationIdRef = useRef(0);
 
   const debouncedDispatch = useDebounceCallback((value: string) => {
     const lines = value
@@ -39,9 +40,11 @@ export default function ManualModsInput() {
       .filter(Boolean);
 
     dispatch(setModNamesList(lines));
+    const validationId = ++blurValidationIdRef.current;
 
     // Validate mods after blur
     const { invalid } = await validateModSlugs(lines);
+    if (validationId !== blurValidationIdRef.current) return;
 
     if (invalid.length > 0) {
       toast.error(`${invalid.length} mods not found`, {
