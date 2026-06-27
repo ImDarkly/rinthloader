@@ -1,6 +1,6 @@
 export const getProject = async (name: string) => {
   const response = await fetch(
-    `https://api.modrinth.com/v2/search?query=${encodeURIComponent(name)}`,
+    `https://api.modrinth.com/v2/project/${encodeURIComponent(name)}`,
   );
 
   if (!response.ok) {
@@ -9,9 +9,7 @@ export const getProject = async (name: string) => {
   }
 
   const data = await response.json();
-  const id = data.hits?.[0]?.project_id;
-
-  return id;
+  return data.id;
 };
 
 export const getUrl = async (
