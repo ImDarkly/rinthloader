@@ -2,8 +2,10 @@ import { Field, FieldDescription, FieldLabel } from "../ui/field";
 import { Textarea } from "../ui/textarea";
 import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { useEffect, useState, useRef } from "react"; // Added useRef
+import { useEffect, useState, useRef } from "react";
 import { useDebounceCallback } from "@/hooks/useDebounceCallback";
+import { validateModSlugs } from "@/lib/modValidation";
+import { toast } from "sonner";
 
 export default function ManualModsInput() {
   const dispatch = useAppDispatch();
@@ -30,13 +32,22 @@ export default function ManualModsInput() {
     }
   }, [modsList]);
 
-  const handleBlur = () => {
+  const handleBlur = async () => {
     const lines = localValue
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
 
     dispatch(setModNamesList(lines));
+
+    // Validate mods after blur
+    const { invalid } = await validateModSlugs(lines);
+
+    if (invalid.length > 0) {
+      toast.error(`${invalid.length} mods not found`, {
+        description: invalid.join(", "),
+      });
+    }
   };
 
   return (
