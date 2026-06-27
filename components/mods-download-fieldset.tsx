@@ -5,6 +5,7 @@ import SelectGameVersion from "./select-game-version";
 import { useAppSelector } from "@/hooks/store";
 import SwitchModsInput from "./mods-input/switch-mods-input";
 import { validateModSlugs } from "@/lib/modValidation";
+import { toast } from "sonner";
 
 export default function ModsDownloadFieldset() {
   const modsList = useAppSelector((state) => state.modNamesList.modNames);
@@ -17,7 +18,9 @@ export default function ModsDownloadFieldset() {
 
     const { invalid } = await validateModSlugs(modsList);
     if (invalid.length > 0) {
-      alert(`Mods not found: ${invalid.join(", ")}`);
+      toast.error("Mods not found", {
+        description: invalid.join(", "),
+      });
       return;
     }
 
@@ -30,11 +33,12 @@ export default function ModsDownloadFieldset() {
   };
 
   return (
-    <div className="grid items-center h-full  w-md px-4">
+    <div className="grid items-center h-full w-md px-4">
       <FieldSet>
         <FieldGroup>
           <SwitchModsInput />
           <SelectGameVersion />
+
           <Field orientation="horizontal">
             <Button type="button" disabled={!isReady} onClick={handleDownload}>
               Download
