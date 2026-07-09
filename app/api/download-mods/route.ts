@@ -1,27 +1,26 @@
 import { downloadMods } from "@/actions/downloadMods";
 
 export async function GET(request: Request) {
-	const { searchParams } = new URL(request.url);
-	const modsList = searchParams.get("modsList") || "";
-	const gameVersion = searchParams.get("gameVersion") || "";
-	const modLoader = searchParams.get("modLoader") || "";
+  const { searchParams } = new URL(request.url);
+  const modsList = searchParams.get("modsList") || "";
+  const gameVersion = searchParams.get("gameVersion") || "";
+  const modLoader = searchParams.get("modLoader") || "";
 
-	const nodeStream = await downloadMods(modsList, gameVersion, modLoader);
-	console.log("nodeStream:", nodeStream);
+  const nodeStream = await downloadMods(modsList, gameVersion, modLoader);
 
-	const readableStream = new ReadableStream({
-		async start(controller) {
-			for await (const chunk of nodeStream) {
-				controller.enqueue(chunk);
-			}
-			controller.close();
-		},
-	});
+  const readableStream = new ReadableStream({
+    async start(controller) {
+      for await (const chunk of nodeStream) {
+        controller.enqueue(chunk);
+      }
+      controller.close();
+    },
+  });
 
-	return new Response(readableStream, {
-		headers: {
-			"Content-Type": "application/zip",
-			"Content-Disposition": 'attachment; filename="mods.zip"',
-		},
-	});
+  return new Response(readableStream, {
+    headers: {
+      "Content-Type": "application/zip",
+      "Content-Disposition": 'attachment; filename="mods.zip"',
+    },
+  });
 }
