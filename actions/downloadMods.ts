@@ -36,6 +36,7 @@ export async function downloadMods(
         if (!url) continue;
 
         const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
         const buffer = Buffer.from(await response.arrayBuffer());
         const filename =
           url.split("/").pop()?.replace("%2B", "+") || `${mod}.jar`;
@@ -50,8 +51,6 @@ export async function downloadMods(
         error instanceof Error ? error : new Error(String(error)),
       );
     }
-
-    await archive.finalize();
   })();
 
   return stream;

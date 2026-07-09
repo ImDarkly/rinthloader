@@ -6,7 +6,7 @@ import { useAppSelector } from "@/hooks/store";
 import SwitchModsInput from "./mods-input/switch-mods-input";
 import { validateModSlugs } from "@/lib/modValidation";
 import { toast } from "sonner";
-import { escape } from "@/lib/utils";
+
 
 export default function ModsDownloadFieldset() {
   const modsList = useAppSelector((state) => state.modNamesList.modNames);
@@ -31,6 +31,7 @@ export default function ModsDownloadFieldset() {
       toast.warning("Some mods not found", {
         description: `Skipping: ${invalid.join(", ")}`,
       });
+      return;
     }
 
     const params = new URLSearchParams({
@@ -38,7 +39,7 @@ export default function ModsDownloadFieldset() {
       gameVersion: gameVersion,
       modLoader: modLoader,
     });
-    window.location.href = escape(`/api/download-mods?${params.toString()}`);
+    window.location.href = `/api/download-mods?${params.toString()}`;
   };
 
   return (
