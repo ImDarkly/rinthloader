@@ -68,7 +68,7 @@ export default function ManualModsInput() {
         }}
         onBlur={() => {
           isEditingRef.current = false;
-          handleBlur();
+          void handleBlur();
         }}
       />
       <FieldDescription>
