@@ -27,10 +27,9 @@ export default function ModsDownloadFieldset() {
     }
 
     if (invalid.length > 0) {
-      toast.error("Mods not found", {
-        description: invalid.join(", "),
+      toast.warning("Some mods not found", {
+        description: `Skipping: ${invalid.join(", ")}`,
       });
-      return;
     }
 
     const params = new URLSearchParams({
