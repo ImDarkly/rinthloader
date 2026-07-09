@@ -17,7 +17,7 @@ export default function ModsDownloadFieldset() {
   const handleDownload = async () => {
     if (!isReady) return;
 
-    const { invalid, errors } = await validateModSlugs(modsList);
+    const { valid, invalid, errors } = await validateModSlugs(modsList);
 
     if (errors.length > 0) {
       toast.error("Network error", {
@@ -31,11 +31,12 @@ export default function ModsDownloadFieldset() {
       toast.warning("Some mods not found", {
         description: `Skipping: ${invalid.join(", ")}`,
       });
-      return;
     }
 
+    if (valid.length === 0) return;
+
     const params = new URLSearchParams({
-      modsList: modsList.join("\n"),
+      modsList: valid.join("\n"),
       gameVersion: gameVersion,
       modLoader: modLoader,
     });
