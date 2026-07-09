@@ -26,7 +26,7 @@ export async function downloadMods(
     onProgress?.(Math.min(1, percent));
   });
 
-  (async () => {
+  void (async () => {
     try {
       for (const mod of mods) {
         const projectId = await getProject(mod);
