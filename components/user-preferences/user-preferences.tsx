@@ -11,6 +11,8 @@ import {
 import { SelectModLoader } from "./select-mod-loader";
 import SelectTheme from "./select-theme";
 import ToggleSnapshots from "./toggle-snapshots";
+import UiModeSwitch from "../ui-mode-switch";
+import { Field, FieldLabel } from "../ui/field";
 
 export default function UserPreferences() {
 	return (
@@ -28,6 +30,10 @@ export default function UserPreferences() {
 				<SelectModLoader />
 				<ToggleSnapshots />
 				<SelectTheme />
+				<Field orientation="horizontal" className="items-center">
+					<FieldLabel className="text-sm">Interface</FieldLabel>
+					<UiModeSwitch />
+				</Field>
 			</PopoverContent>
 		</Popover>
 	);

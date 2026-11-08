@@ -1,5 +1,6 @@
 import { Input } from "../ui/input";
 import { getModNames } from "@/lib/mod-detector";
+import getFilesFromEvent from "@/lib/getFilesFromEvent";
 import { useDispatch } from "react-redux";
 import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 import { useDropzone } from "react-dropzone";
@@ -20,6 +21,7 @@ export default function Dropzone() {
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,
+		getFilesFromEvent,
 		accept: { "application/java-archive": [".jar"] },
 		multiple: true,
 	});

@@ -1,18 +1,18 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { Version } from "../types";
 
 const initialState = {
-	value: null,
+	value: null as string | null,
 };
 
 export const gameVersionSlice = createSlice({
 	name: "gameVersion",
 	initialState,
 	reducers: {
-		setGameVersion: (state, action) => {
+		setGameVersion: (state, action: PayloadAction<string | null>) => {
 			state.value = action.payload;
 		},
-		initializeLatestGameVersion: (state, action) => {
+		initializeLatestGameVersion: (state, action: PayloadAction<Version[]>) => {
 			const versions = action.payload;
 			if (!versions?.length || state.value) return;
 
