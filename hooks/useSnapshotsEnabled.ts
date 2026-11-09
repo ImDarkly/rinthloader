@@ -7,6 +7,8 @@ export default function useSnapshotsEnabled(): SnapshotsState {
 	useEffect(() => {
 		const stored = localStorage.getItem("isSnapshotsEnabled");
 		if (stored) {
+			// Hydrate the persisted preference after mount to avoid a server/client mismatch.
+			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setIsSnapshotsEnabled(JSON.parse(stored));
 		}
 	}, []);

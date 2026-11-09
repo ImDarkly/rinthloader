@@ -2,46 +2,11 @@
 import { Button } from "./ui/button";
 import { Field, FieldGroup, FieldSet } from "./ui/field";
 import SelectGameVersion from "./select-game-version";
-import { useAppSelector } from "@/hooks/store";
 import SwitchModsInput from "./mods-input/switch-mods-input";
-import { validateModSlugs } from "@/lib/modValidation";
-import { toast } from "sonner";
-
+import { useModsDownload } from "@/hooks/useModsDownload";
 
 export default function ModsDownloadFieldset() {
-  const modsList = useAppSelector((state) => state.modNamesList.modNames);
-  const modLoader = useAppSelector((state) => state.modLoader.value);
-  const gameVersion = useAppSelector((state) => state.gameVersion.value);
-  const isReady = modsList && gameVersion && modLoader;
-
-  const handleDownload = async () => {
-    if (!isReady) return;
-
-    const { valid, invalid, errors } = await validateModSlugs(modsList);
-
-    if (errors.length > 0) {
-      toast.error("Network error", {
-        description:
-          "Failed to connect to Modrinth to validate: " + errors.join(", "),
-      });
-      return;
-    }
-
-    if (invalid.length > 0) {
-      toast.warning("Some mods not found", {
-        description: `Skipping: ${invalid.join(", ")}`,
-      });
-    }
-
-    if (valid.length === 0) return;
-
-    const params = new URLSearchParams({
-      modsList: valid.join("\n"),
-      gameVersion: gameVersion,
-      modLoader: modLoader,
-    });
-    window.location.href = `/api/download-mods?${params.toString()}`;
-  };
+  const { isReady, isDownloading, handleDownload } = useModsDownload();
 
   return (
     <div className="grid items-center h-full w-md px-4">
@@ -51,7 +16,12 @@ export default function ModsDownloadFieldset() {
           <SelectGameVersion />
 
           <Field orientation="horizontal">
-            <Button type="button" disabled={!isReady} onClick={handleDownload}>
+            <Button
+              type="button"
+              disabled={!isReady || isDownloading}
+              aria-busy={isDownloading}
+              onClick={() => void handleDownload()}
+            >
               Download
             </Button>
           </Field>

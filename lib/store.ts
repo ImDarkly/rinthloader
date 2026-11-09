@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import gameVersionReducer from "@/lib/slices/gameVersionSlice";
 import modLoaderReducer from "@/lib/slices/modLoaderSlice";
 import modNamesListReducer from "@/lib/slices/modNamesListSlice";
+import uiReducer from "@/lib/slices/uiSlice";
 
 export const makeStore = () => {
 	return configureStore({
@@ -9,6 +10,7 @@ export const makeStore = () => {
 			gameVersion: gameVersionReducer,
 			modLoader: modLoaderReducer,
 			modNamesList: modNamesListReducer,
+			ui: uiReducer,
 		},
 	});
 };
