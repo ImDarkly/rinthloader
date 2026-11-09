@@ -19,7 +19,7 @@ export default function TerminalDownloadSection() {
 				className={cn(
 					"w-fit cursor-pointer text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed",
 					isReady && !isDownloading
-						? "text-foreground hover:underline"
+						? "text-primary hover:underline"
 						: "text-muted-foreground",
 				)}
 			>

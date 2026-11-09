@@ -36,8 +36,8 @@ export default function TerminalImportSection() {
 								className={cn(
 									"cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
 									active
-										? "text-foreground"
-										: "text-foreground/60 hover:text-foreground",
+										? "text-primary"
+										: "text-muted-foreground hover:text-foreground",
 								)}
 							>
 								{active ? `[${label}]` : label}

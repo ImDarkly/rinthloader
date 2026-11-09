@@ -55,7 +55,7 @@ export default function TerminalDropzone() {
 				{...getRootProps()}
 				role="button"
 				tabIndex={0}
-				className="w-fit cursor-pointer text-foreground outline-none hover:underline focus-visible:ring-1 focus-visible:ring-ring"
+				className="w-fit cursor-pointer text-primary outline-none hover:underline focus-visible:ring-1 focus-visible:ring-ring"
 			>
 				<input {...getInputProps()} id="mod" />
 				{isDragActive

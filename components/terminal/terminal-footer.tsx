@@ -5,7 +5,7 @@ export default function TerminalFooter() {
 				href="https://github.com/ImDarkly/rinthloader"
 				target="_blank"
 				rel="noreferrer"
-				className="text-foreground underline-offset-4 hover:underline"
+				className="underline-offset-4 hover:text-foreground hover:underline"
 			>
 				source
 			</a>
