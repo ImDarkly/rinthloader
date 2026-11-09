@@ -10,8 +10,6 @@ import {
 } from "../ui/popover";
 import TerminalSelectTheme from "./terminal-select-theme";
 import TerminalToggleSnapshots from "./terminal-toggle-snapshots";
-import UiModeSwitch from "../ui-mode-switch";
-import { Field, FieldLabel } from "../ui/field";
 import { useSnapshotsContext } from "@/app/page";
 
 export default function TerminalSettingsControl() {
@@ -41,12 +39,6 @@ export default function TerminalSettingsControl() {
 					</PopoverHeader>
 					<TerminalToggleSnapshots compact />
 					<TerminalSelectTheme compact />
-					<Field orientation="horizontal" className="items-center">
-						<FieldLabel className="text-muted-foreground text-xs">
-							interface
-						</FieldLabel>
-						<UiModeSwitch />
-					</Field>
 				</PopoverContent>
 			</Popover>
 		</div>

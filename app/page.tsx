@@ -3,6 +3,7 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import ModsDownloadFieldset from "@/components/mods-download-fieldset";
 import TerminalApp from "@/components/terminal/terminal-app";
+import UiModeShortcut from "@/components/ui-mode-shortcut";
 import useBetaEnabled, { type BetaState } from "@/hooks/useBetaEnabled";
 import useSnapshotsEnabled from "@/hooks/useSnapshotsEnabled";
 import { SnapshotsState } from "@/lib/types";
@@ -27,6 +28,7 @@ export default function Home() {
 	return (
 		<SnapshotsContext.Provider value={snapshotsState}>
 			<BetaContext.Provider value={betaState}>
+				<UiModeShortcut />
 				{isBetaEnabled ? (
 					<TerminalApp />
 				) : (

@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 
-export type BetaState = [boolean, (v: boolean) => void];
+export type BetaState = [boolean, Dispatch<SetStateAction<boolean>>];
 
 export default function useBetaEnabled(): BetaState {
 	const [isBetaEnabled, setIsBetaEnabled] = useState(false);
