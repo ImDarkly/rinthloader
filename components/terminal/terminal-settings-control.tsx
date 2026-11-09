@@ -27,7 +27,7 @@ export default function TerminalSettingsControl() {
 					render={
 						<button
 							type="button"
-							className="cursor-pointer underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+							className="cursor-pointer text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 						>
 							[settings]
 						</button>
