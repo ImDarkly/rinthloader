@@ -1,5 +1,6 @@
 import { Version } from "@/lib/types";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export function useModrinthVersions() {
   const [versions, setVersions] = useState<Version[]>([]);
@@ -13,7 +14,13 @@ export function useModrinthVersions() {
         return response.json();
       })
       .then((data: Version[]) => setVersions(data))
-      .catch((error: Error) => setError(error))
+      .catch((error: Error) => {
+        setError(error);
+        toast.error("Couldn't load game versions", {
+          id: "modrinth-game-versions",
+          description: "Modrinth may be down. Reload the page to try again.",
+        });
+      })
       .finally(() => setIsLoading(false));
   }, []);
   return { versions, error, isLoading };

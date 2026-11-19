@@ -1,5 +1,6 @@
 import { ModLoader } from "@/lib/types";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export function useModrinthLoaders() {
   const [modLoaders, setModLoaders] = useState<ModLoader[]>([]);
@@ -17,7 +18,13 @@ export function useModrinthLoaders() {
           data.filter((loader) => loader.supported_project_types.includes("mod")),
         );
       })
-      .catch((error: Error) => setError(error))
+      .catch((error: Error) => {
+        setError(error);
+        toast.error("Couldn't load mod loaders", {
+          id: "modrinth-mod-loaders",
+          description: "Modrinth may be down. Reload the page to try again.",
+        });
+      })
       .finally(() => setIsLoading(false));
   }, []);
   return { modLoaders, error, isLoading };
