@@ -1,5 +1,19 @@
 import { getFile, getProject } from "@/lib/api";
 
+// Blur and download validate the same names, so look each one up once.
+const projectIdCache = new Map<string, Promise<string | undefined>>();
+
+function getCachedProject(slug: string) {
+  const key = slug.toLowerCase();
+  let projectId = projectIdCache.get(key);
+  if (!projectId) {
+    projectId = getProject(slug);
+    projectIdCache.set(key, projectId);
+    projectId.catch(() => projectIdCache.delete(key));
+  }
+  return projectId;
+}
+
 export async function validateModSlugs(
   slugs: string[],
   concurrencyLimit = 5,
@@ -23,7 +37,7 @@ export async function validateModSlugs(
     const results = await Promise.all(
       chunk.map(async (slug) => {
         try {
-          const projectId = await getProject(slug);
+          const projectId = await getCachedProject(slug);
           if (!projectId) return { slug, status: "invalid" };
           if (!target) return { slug, status: "valid" };
 
