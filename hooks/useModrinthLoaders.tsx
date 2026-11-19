@@ -8,7 +8,10 @@ export function useModrinthLoaders() {
 
   useEffect(() => {
     void fetch("https://api.modrinth.com/v2/tag/loader")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        return response.json();
+      })
       .then((data: ModLoader[]) => {
         setModLoaders(
           data.filter((loader) => loader.supported_project_types.includes("mod")),

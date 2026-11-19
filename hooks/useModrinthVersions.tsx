@@ -8,7 +8,10 @@ export function useModrinthVersions() {
 
   useEffect(() => {
     void fetch("https://api.modrinth.com/v2/tag/game_version")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        return response.json();
+      })
       .then((data: Version[]) => setVersions(data))
       .catch((error: Error) => setError(error))
       .finally(() => setIsLoading(false));
