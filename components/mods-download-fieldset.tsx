@@ -9,7 +9,7 @@ export default function ModsDownloadFieldset() {
   const { isReady, isDownloading, handleDownload } = useModsDownload();
 
   return (
-    <div className="grid items-center h-full w-md px-4">
+    <div className="grid items-center h-full w-full max-w-md px-4">
       <FieldSet>
         <FieldGroup>
           <SwitchModsInput />
