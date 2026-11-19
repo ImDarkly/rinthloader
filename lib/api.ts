@@ -4,6 +4,11 @@ export interface ModFile {
   primary: boolean;
 }
 
+export interface ModDependency {
+  project_id: string | null;
+  dependency_type: "required" | "optional" | "incompatible" | "embedded";
+}
+
 export const getProject = async (name: string) => {
   const response = await fetch(
     `https://api.modrinth.com/v2/project/${encodeURIComponent(name)}`,
@@ -36,7 +41,7 @@ const findProjectByTitle = async (title: string) => {
     ?.project_id;
 };
 
-export const getFile = async (
+export const getVersion = async (
   id: string,
   modLoader: string,
   gameVersion: string,
@@ -48,7 +53,20 @@ export const getFile = async (
   )}"]&game_versions=["${encodeURIComponent(gameVersion)}"]`;
   const response = await fetch(url);
   const data = await response.json();
-  const files: ModFile[] = data?.[0]?.files ?? [];
+  const version = data?.[0];
+  if (!version) return undefined;
 
-  return files.find((file) => file.primary) ?? files[0];
+  const files: ModFile[] = version.files ?? [];
+  const dependencies: ModDependency[] = version.dependencies ?? [];
+
+  return {
+    file: files.find((file) => file.primary) ?? files[0],
+    dependencies,
+  };
 };
+
+export const getFile = async (
+  id: string,
+  modLoader: string,
+  gameVersion: string,
+) => (await getVersion(id, modLoader, gameVersion))?.file;

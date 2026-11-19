@@ -1,5 +1,5 @@
 "use server";
-import { getFile, getProject } from "@/lib/api";
+import { getProject, getVersion } from "@/lib/api";
 import archiver from "archiver";
 import { PassThrough } from "stream";
 
@@ -20,6 +20,7 @@ export async function downloadMods(
   const total = mods.length;
   let done = 0;
   const addedProjectIds = new Set<string>();
+  const queue = [...mods];
 
   archive.pipe(stream);
   archive.on("error", (error) => stream.destroy(error));
@@ -34,8 +35,15 @@ export async function downloadMods(
     if (!projectId || addedProjectIds.has(projectId)) return;
     addedProjectIds.add(projectId);
 
-    const file = await getFile(projectId, modLoader, gameVersion);
+    const version = await getVersion(projectId, modLoader, gameVersion);
+    const file = version?.file;
     if (!file) return;
+
+    for (const dependency of version.dependencies) {
+      if (dependency.dependency_type === "required" && dependency.project_id) {
+        queue.push(dependency.project_id);
+      }
+    }
 
     const response = await fetch(file.url);
     if (!response.ok)
@@ -49,9 +57,12 @@ export async function downloadMods(
 
   void (async () => {
     try {
-      for (let i = 0; i < mods.length; i += concurrencyLimit) {
-        await Promise.all(mods.slice(i, i + concurrencyLimit).map(addMod));
-      }
+      const worker = async () => {
+        for (let mod = queue.shift(); mod; mod = queue.shift()) {
+          await addMod(mod);
+        }
+      };
+      await Promise.all(Array.from({ length: concurrencyLimit }, worker));
       await archive.finalize();
     } catch (error) {
       stream.destroy(error instanceof Error ? error : new Error(String(error)));
