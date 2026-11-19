@@ -7,6 +7,10 @@ export async function GET(request: Request) {
   const modLoader = searchParams.get("modLoader") || "";
 
   const nodeStream = await downloadMods(modsList, gameVersion, modLoader);
+  const filename = ["mods", gameVersion, modLoader]
+    .filter(Boolean)
+    .join("-")
+    .replace(/[^\w.+-]/g, "_");
 
   const readableStream = new ReadableStream({
     async start(controller) {
@@ -20,7 +24,7 @@ export async function GET(request: Request) {
   return new Response(readableStream, {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": 'attachment; filename="mods.zip"',
+      "Content-Disposition": `attachment; filename="${filename}.zip"`,
     },
   });
 }
