@@ -52,6 +52,8 @@ export const getVersion = async (
     modLoader,
   )}"]&game_versions=["${encodeURIComponent(gameVersion)}"]`;
   const response = await fetch(url);
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+
   const data = await response.json();
   const version = data?.[0];
   if (!version) return undefined;
