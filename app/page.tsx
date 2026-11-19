@@ -6,6 +6,7 @@ import TerminalApp from "@/components/terminal/terminal-app";
 import UiModeShortcut from "@/components/ui-mode-shortcut";
 import useBetaEnabled, { type BetaState } from "@/hooks/useBetaEnabled";
 import usePersistedModList from "@/hooks/usePersistedModList";
+import { useOpenShareLink } from "@/hooks/useShareLink";
 import useSnapshotsEnabled from "@/hooks/useSnapshotsEnabled";
 import { SnapshotsState } from "@/lib/types";
 import { createContext, useContext } from "react";
@@ -26,6 +27,7 @@ export default function Home() {
 	const betaState = useBetaEnabled();
 	const [isBetaEnabled] = betaState;
 	usePersistedModList();
+	useOpenShareLink();
 
 	return (
 		<SnapshotsContext.Provider value={snapshotsState}>
