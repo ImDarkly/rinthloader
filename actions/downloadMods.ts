@@ -15,7 +15,7 @@ export async function downloadMods(
     .filter(Boolean);
 
   const stream = new PassThrough();
-  const archive = archiver("zip", { zlib: { level: 9 } });
+  const archive = archiver("zip", { store: true });
   const total = mods.length;
   let done = 0;
 
