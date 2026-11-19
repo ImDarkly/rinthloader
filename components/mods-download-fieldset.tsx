@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
 import { Field, FieldGroup, FieldSet } from "./ui/field";
 import SelectGameVersion from "./select-game-version";
 import SwitchModsInput from "./mods-input/switch-mods-input";
@@ -22,7 +23,8 @@ export default function ModsDownloadFieldset() {
               aria-busy={isDownloading}
               onClick={() => void handleDownload()}
             >
-              Download
+              {isDownloading && <Spinner data-icon="inline-start" aria-hidden />}
+              {isDownloading ? "Checking mods…" : "Download"}
             </Button>
           </Field>
         </FieldGroup>
