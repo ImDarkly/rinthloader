@@ -1,3 +1,9 @@
+export interface ModFile {
+  url: string;
+  filename: string;
+  primary: boolean;
+}
+
 export const getProject = async (name: string) => {
   const response = await fetch(
     `https://api.modrinth.com/v2/project/${encodeURIComponent(name)}`,
@@ -12,7 +18,7 @@ export const getProject = async (name: string) => {
   return data.id;
 };
 
-export const getUrl = async (
+export const getFile = async (
   id: string,
   modLoader: string,
   gameVersion: string,
@@ -24,7 +30,7 @@ export const getUrl = async (
   )}"]&game_versions=["${encodeURIComponent(gameVersion)}"]`;
   const response = await fetch(url);
   const data = await response.json();
-  const files: { url: string; primary: boolean }[] = data?.[0]?.files ?? [];
+  const files: ModFile[] = data?.[0]?.files ?? [];
 
-  return (files.find((file) => file.primary) ?? files[0])?.url;
+  return files.find((file) => file.primary) ?? files[0];
 };

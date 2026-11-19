@@ -1,5 +1,5 @@
 "use server";
-import { getProject, getUrl } from "@/lib/api";
+import { getFile, getProject } from "@/lib/api";
 import archiver from "archiver";
 import { PassThrough } from "stream";
 
@@ -32,15 +32,14 @@ export async function downloadMods(
         const projectId = await getProject(mod);
         if (!projectId) continue;
 
-        const url = await getUrl(projectId, modLoader, gameVersion);
-        if (!url) continue;
+        const file = await getFile(projectId, modLoader, gameVersion);
+        if (!file) continue;
 
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
+        const response = await fetch(file.url);
+        if (!response.ok)
+          throw new Error(`Failed to fetch ${file.url}: ${response.status}`);
         const buffer = Buffer.from(await response.arrayBuffer());
-        const filename =
-          url.split("/").pop()?.replace("%2B", "+") || `${mod}.jar`;
-        archive.append(buffer, { name: filename });
+        archive.append(buffer, { name: file.filename || `${mod}.jar` });
 
         done++;
         onProgress?.(done / total);
