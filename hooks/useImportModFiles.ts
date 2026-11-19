@@ -1,6 +1,5 @@
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { detectModFiles, getMostCommonModLoader } from "@/lib/mod-detector";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
 import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 
@@ -9,6 +8,9 @@ export function useImportModFiles() {
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 
 	return async (files: File[]) => {
+		const { detectModFiles, getMostCommonModLoader } = await import(
+			"@/lib/mod-detector"
+		);
 		const detected = await detectModFiles(files);
 		dispatch(
 			setModNamesList(
