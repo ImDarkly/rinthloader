@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { parse } from "smol-toml";
+import { getProjectSlugsByFileHash } from "@/lib/api";
 
 export type DetectedModFile = {
 	fileName: string;
@@ -11,10 +12,13 @@ export async function detectModFiles(
 	files: File[],
 ): Promise<DetectedModFile[]> {
 	const results: DetectedModFile[] = [];
+	const hashes: (string | null)[] = [];
 
 	for (const file of files) {
+		let hash: string | null = null;
 		try {
 			const buffer = await file.arrayBuffer();
+			hash = await sha1(buffer).catch(() => null);
 			const zip = await JSZip.loadAsync(buffer);
 
 			const { name, modLoader } = await readModMetadata(zip);
@@ -28,9 +32,26 @@ export async function detectModFiles(
 		} catch {
 			results.push({ fileName: file.name, modName: null, modLoader: null });
 		}
+		hashes.push(hash);
 	}
 
-	return results;
+	const knownHashes = hashes.filter((hash): hash is string => hash !== null);
+	const slugs = await getProjectSlugsByFileHash(knownHashes).catch(
+		() => new Map<string, string>(),
+	);
+
+	return results.map((result, index) => {
+		const hash = hashes[index];
+		const slug = hash ? slugs.get(hash) : undefined;
+		return slug ? { ...result, modName: slug } : result;
+	});
+}
+
+async function sha1(buffer: ArrayBuffer) {
+	const digest = await crypto.subtle.digest("SHA-1", buffer);
+	return Array.from(new Uint8Array(digest))
+		.map((byte) => byte.toString(16).padStart(2, "0"))
+		.join("");
 }
 
 async function readModMetadata(
