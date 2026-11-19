@@ -41,7 +41,7 @@ export default function SelectGameVersion() {
 				onValueChange={(value) => dispatch(setGameVersion(value))}
 				value={gameVersion}
 			>
-				<ComboboxInput placeholder="Select a game version" />
+				<ComboboxInput id="game-version" placeholder="Select a game version" />
 				<ComboboxContent>
 					<ComboboxEmpty>No versions found.</ComboboxEmpty>
 					<ComboboxList>
