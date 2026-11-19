@@ -4,6 +4,7 @@ import { parse } from "smol-toml";
 export type DetectedModFile = {
 	fileName: string;
 	modName: string | null;
+	modLoader: string | null;
 };
 
 export async function detectModFiles(
@@ -16,35 +17,39 @@ export async function detectModFiles(
 			const buffer = await file.arrayBuffer();
 			const zip = await JSZip.loadAsync(buffer);
 
-			const name = await readModName(zip);
+			const { name, modLoader } = await readModMetadata(zip);
+			const modName =
+				typeof name === "string" && name.trim() ? name.trim() : null;
 			results.push({
 				fileName: file.name,
-				modName:
-					typeof name === "string" && name.trim() ? name.trim() : null,
+				modName,
+				modLoader: modName ? modLoader : null,
 			});
 		} catch {
-			results.push({ fileName: file.name, modName: null });
+			results.push({ fileName: file.name, modName: null, modLoader: null });
 		}
 	}
 
 	return results;
 }
 
-async function readModName(zip: JSZip): Promise<unknown> {
+async function readModMetadata(
+	zip: JSZip,
+): Promise<{ name: unknown; modLoader: string | null }> {
 	const fabricFile = zip.file("fabric.mod.json");
 	if (fabricFile) {
 		const data = JSON.parse(await fabricFile.async("string"));
-		return data.name ?? data.id;
+		return { name: data.name ?? data.id, modLoader: "fabric" };
 	}
 
 	const quiltFile = zip.file("quilt.mod.json");
 	if (quiltFile) {
 		const loader = JSON.parse(await quiltFile.async("string")).quilt_loader;
-		return loader?.metadata?.name ?? loader?.id;
+		return { name: loader?.metadata?.name ?? loader?.id, modLoader: "quilt" };
 	}
 
-	const forgeFile =
-		zip.file("META-INF/neoforge.mods.toml") ?? zip.file("META-INF/mods.toml");
+	const neoForgeFile = zip.file("META-INF/neoforge.mods.toml");
+	const forgeFile = neoForgeFile ?? zip.file("META-INF/mods.toml");
 	if (forgeFile) {
 		const data = parse(await forgeFile.async("string")) as {
 			mods?: { displayName?: unknown; modId?: unknown }[];
@@ -53,15 +58,26 @@ async function readModName(zip: JSZip): Promise<unknown> {
 		// Some jars leave the display name as an unfilled build placeholder.
 		const isPlaceholder =
 			typeof mod?.displayName === "string" && mod.displayName.includes("${");
-		return isPlaceholder ? mod?.modId : (mod?.displayName ?? mod?.modId);
+		return {
+			name: isPlaceholder ? mod?.modId : (mod?.displayName ?? mod?.modId),
+			modLoader: neoForgeFile ? "neoforge" : "forge",
+		};
 	}
 
-	return null;
+	return { name: null, modLoader: null };
 }
 
-export async function getModNames(files: File[]): Promise<string[]> {
-	const results = await detectModFiles(files);
-	return results.flatMap((result) =>
-		result.modName ? [result.modName] : [],
-	);
+export function getMostCommonModLoader(
+	results: DetectedModFile[],
+): string | null {
+	const counts = new Map<string, number>();
+	for (const { modLoader } of results) {
+		if (modLoader) counts.set(modLoader, (counts.get(modLoader) ?? 0) + 1);
+	}
+
+	let mostCommon: string | null = null;
+	for (const [modLoader, count] of counts) {
+		if (!mostCommon || count > counts.get(mostCommon)!) mostCommon = modLoader;
+	}
+	return mostCommon;
 }

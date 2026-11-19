@@ -1,19 +1,17 @@
 import { Input } from "../ui/input";
-import { getModNames } from "@/lib/mod-detector";
 import getFilesFromEvent from "@/lib/getFilesFromEvent";
-import { useDispatch } from "react-redux";
-import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 import { useDropzone } from "react-dropzone";
 import { useAppSelector } from "@/hooks/store";
+import { useImportModFiles } from "@/hooks/useImportModFiles";
 
 export default function Dropzone() {
-	const dispatch = useDispatch();
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
+
+	const importModFiles = useImportModFiles();
 
 	const onDrop = async (files: File[]) => {
 		if (!files.length) return;
-		const result = await getModNames(files);
-		dispatch(setModNamesList(result));
+		await importModFiles(files);
 	};
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
