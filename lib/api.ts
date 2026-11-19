@@ -1,8 +1,21 @@
+import packageJson from "@/package.json";
+
 export interface ModFile {
   url: string;
   filename: string;
   primary: boolean;
 }
+
+// Modrinth asks API clients to identify themselves. Browsers send their own
+// User-Agent, and setting one there would add a CORS preflight to every call.
+const requestInit: RequestInit | undefined =
+  typeof window === "undefined"
+    ? {
+        headers: {
+          "User-Agent": `ImDarkly/rinthloader/${packageJson.version} (github.com/ImDarkly/rinthloader)`,
+        },
+      }
+    : undefined;
 
 export interface ModDependency {
   project_id: string | null;
@@ -12,6 +25,7 @@ export interface ModDependency {
 export const getProject = async (name: string) => {
   const response = await fetch(
     `https://api.modrinth.com/v2/project/${encodeURIComponent(name)}`,
+    requestInit,
   );
 
   if (!response.ok) {
@@ -30,7 +44,10 @@ const findProjectByTitle = async (title: string) => {
     facets: JSON.stringify([["project_type:mod"]]),
     limit: "5",
   });
-  const response = await fetch(`https://api.modrinth.com/v2/search?${params}`);
+  const response = await fetch(
+    `https://api.modrinth.com/v2/search?${params}`,
+    requestInit,
+  );
 
   if (!response.ok) throw new Error(`API error: ${response.status}`);
 
@@ -51,7 +68,7 @@ export const getVersion = async (
   )}/version?loaders=["${encodeURIComponent(
     modLoader,
   )}"]&game_versions=["${encodeURIComponent(gameVersion)}"]`;
-  const response = await fetch(url);
+  const response = await fetch(url, requestInit);
   if (!response.ok) throw new Error(`API error: ${response.status}`);
 
   const data = await response.json();
