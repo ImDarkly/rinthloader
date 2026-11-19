@@ -12,14 +12,14 @@ import {
 const themes = ["light", "dark", "system"] as const;
 
 export default function SelectTheme() {
-	const { setTheme } = useTheme();
+	const { theme, setTheme } = useTheme();
 
 	return (
 		<Field orientation="horizontal">
 			<FieldLabel htmlFor="theme">Theme</FieldLabel>
 			<Select
 				onValueChange={(value) => setTheme(value ?? "system")}
-				defaultValue="system"
+				value={theme ?? "system"}
 			>
 				<SelectTrigger id="theme">
 					<SelectValue data-placeholder="Select theme" />
