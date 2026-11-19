@@ -47,7 +47,7 @@ export default function ManualModsInput() {
     if (validationId !== blurValidationIdRef.current) return;
 
     if (invalid.length > 0) {
-      toast.error(`${invalid.length} mods not found`, {
+      toast.error(`${invalid.length} ${invalid.length === 1 ? "mod" : "mods"} not found`, {
         description: invalid.join(", "),
       });
     }
