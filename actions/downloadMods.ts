@@ -8,6 +8,7 @@ export async function downloadMods(
   gameVersion: string,
   modLoader: string,
   onProgress?: (p: number) => void,
+  concurrencyLimit = 5,
 ) {
   const mods = modsList
     .split("\n")
@@ -26,23 +27,27 @@ export async function downloadMods(
     onProgress?.(Math.min(1, percent));
   });
 
+  const addMod = async (mod: string) => {
+    const projectId = await getProject(mod);
+    if (!projectId) return;
+
+    const file = await getFile(projectId, modLoader, gameVersion);
+    if (!file) return;
+
+    const response = await fetch(file.url);
+    if (!response.ok)
+      throw new Error(`Failed to fetch ${file.url}: ${response.status}`);
+    const buffer = Buffer.from(await response.arrayBuffer());
+    archive.append(buffer, { name: file.filename || `${mod}.jar` });
+
+    done++;
+    onProgress?.(done / total);
+  };
+
   void (async () => {
     try {
-      for (const mod of mods) {
-        const projectId = await getProject(mod);
-        if (!projectId) continue;
-
-        const file = await getFile(projectId, modLoader, gameVersion);
-        if (!file) continue;
-
-        const response = await fetch(file.url);
-        if (!response.ok)
-          throw new Error(`Failed to fetch ${file.url}: ${response.status}`);
-        const buffer = Buffer.from(await response.arrayBuffer());
-        archive.append(buffer, { name: file.filename || `${mod}.jar` });
-
-        done++;
-        onProgress?.(done / total);
+      for (let i = 0; i < mods.length; i += concurrencyLimit) {
+        await Promise.all(mods.slice(i, i + concurrencyLimit).map(addMod));
       }
       await archive.finalize();
     } catch (error) {
