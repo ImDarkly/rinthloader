@@ -10,7 +10,9 @@ export function useModrinthLoaders() {
     void fetch("https://api.modrinth.com/v2/tag/loader")
       .then((response) => response.json())
       .then((data: ModLoader[]) => {
-        setModLoaders(data);
+        setModLoaders(
+          data.filter((loader) => loader.supported_project_types.includes("mod")),
+        );
       })
       .catch((error: Error) => setError(error))
       .finally(() => setIsLoading(false));
