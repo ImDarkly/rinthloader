@@ -59,7 +59,7 @@ export default function ManualModsInput() {
       <Textarea
         id="mods-list"
         rows={10}
-        className="h-24 resize-none"
+        className="min-h-24 max-h-64 resize-none"
         value={localValue}
         onChange={(e) => {
           isEditingRef.current = true;
