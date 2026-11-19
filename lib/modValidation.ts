@@ -1,14 +1,21 @@
-import { getProject } from "@/lib/api";
+import { getFile, getProject } from "@/lib/api";
 
 export async function validateModSlugs(
   slugs: string[],
   concurrencyLimit = 5,
-): Promise<{ valid: string[]; invalid: string[]; errors: string[] }> {
+  target?: { gameVersion: string; modLoader: string },
+): Promise<{
+  valid: string[];
+  invalid: string[];
+  unavailable: string[];
+  errors: string[];
+}> {
   if (concurrencyLimit <= 0) {
     throw new Error("concurrencyLimit must be greater than 0");
   }
   const valid: string[] = [];
   const invalid: string[] = [];
+  const unavailable: string[] = [];
   const errors: string[] = [];
 
   for (let i = 0; i < slugs.length; i += concurrencyLimit) {
@@ -17,7 +24,15 @@ export async function validateModSlugs(
       chunk.map(async (slug) => {
         try {
           const projectId = await getProject(slug);
-          return { slug, status: projectId ? "valid" : "invalid" };
+          if (!projectId) return { slug, status: "invalid" };
+          if (!target) return { slug, status: "valid" };
+
+          const file = await getFile(
+            projectId,
+            target.modLoader,
+            target.gameVersion,
+          );
+          return { slug, status: file ? "valid" : "unavailable" };
         } catch {
           return { slug, status: "error" };
         }
@@ -27,9 +42,10 @@ export async function validateModSlugs(
     for (const result of results) {
       if (result.status === "valid") valid.push(result.slug);
       else if (result.status === "invalid") invalid.push(result.slug);
+      else if (result.status === "unavailable") unavailable.push(result.slug);
       else errors.push(result.slug);
     }
   }
 
-  return { valid, invalid, errors };
+  return { valid, invalid, unavailable, errors };
 }

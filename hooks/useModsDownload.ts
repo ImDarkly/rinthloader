@@ -18,7 +18,11 @@ export function useModsDownload() {
 		setIsDownloading(true);
 
 		try {
-			const { valid, invalid, errors } = await validateModSlugs(modsList);
+			const { valid, invalid, unavailable, errors } = await validateModSlugs(
+				modsList,
+				undefined,
+				{ gameVersion, modLoader },
+			);
 
 			if (errors.length > 0) {
 				toast.error("Network error", {
@@ -32,6 +36,12 @@ export function useModsDownload() {
 			if (invalid.length > 0) {
 				toast.warning("Some mods not found", {
 					description: `Skipping: ${invalid.join(", ")}`,
+				});
+			}
+
+			if (unavailable.length > 0) {
+				toast.warning(`No ${modLoader} build for ${gameVersion}`, {
+					description: `Skipping: ${unavailable.join(", ")}`,
 				});
 			}
 
