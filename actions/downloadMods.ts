@@ -21,6 +21,7 @@ export async function downloadMods(
   let done = 0;
 
   archive.pipe(stream);
+  archive.on("error", (error) => stream.destroy(error));
 
   archive.on("progress", (data) => {
     const percent = data.entries.processed / total;
@@ -51,9 +52,8 @@ export async function downloadMods(
       }
       await archive.finalize();
     } catch (error) {
-      archive.destroy(
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      stream.destroy(error instanceof Error ? error : new Error(String(error)));
+      archive.abort();
     }
   })();
 
