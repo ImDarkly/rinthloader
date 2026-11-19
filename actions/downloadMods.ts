@@ -19,6 +19,7 @@ export async function downloadMods(
   const archive = archiver("zip", { store: true });
   const total = mods.length;
   let done = 0;
+  const addedProjectIds = new Set<string>();
 
   archive.pipe(stream);
   archive.on("error", (error) => stream.destroy(error));
@@ -30,7 +31,8 @@ export async function downloadMods(
 
   const addMod = async (mod: string) => {
     const projectId = await getProject(mod);
-    if (!projectId) return;
+    if (!projectId || addedProjectIds.has(projectId)) return;
+    addedProjectIds.add(projectId);
 
     const file = await getFile(projectId, modLoader, gameVersion);
     if (!file) return;
