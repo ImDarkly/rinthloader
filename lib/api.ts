@@ -24,6 +24,7 @@ export const getUrl = async (
   )}"]&game_versions=["${encodeURIComponent(gameVersion)}"]`;
   const response = await fetch(url);
   const data = await response.json();
+  const files: { url: string; primary: boolean }[] = data?.[0]?.files ?? [];
 
-  return data?.[0]?.files?.[0]?.url;
+  return (files.find((file) => file.primary) ?? files[0])?.url;
 };
