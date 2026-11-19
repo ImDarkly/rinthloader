@@ -65,7 +65,7 @@ export default function TerminalDropzone() {
 						: "[choose .jar files] or drop them here"}
 			</div>
 			<p className="text-xs text-muted-foreground">
-				automatic detection: Fabric jars only
+				automatic detection: Fabric, Quilt, Forge and NeoForge jars
 			</p>
 
 			{fileCount > 0 && (
