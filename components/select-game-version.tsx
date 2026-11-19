@@ -43,7 +43,7 @@ export default function SelectGameVersion() {
 			>
 				<ComboboxInput placeholder="Select a game version" />
 				<ComboboxContent>
-					<ComboboxEmpty>No verions found.</ComboboxEmpty>
+					<ComboboxEmpty>No versions found.</ComboboxEmpty>
 					<ComboboxList>
 						{releases.length > 0 && (
 							<ComboboxGroup items={releases}>

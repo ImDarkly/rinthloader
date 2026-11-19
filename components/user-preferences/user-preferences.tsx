@@ -20,7 +20,7 @@ export default function UserPreferences() {
 			/>
 			<PopoverContent>
 				<PopoverHeader>
-					<PopoverTitle>User preferances</PopoverTitle>
+					<PopoverTitle>User preferences</PopoverTitle>
 					<PopoverDescription>
 						Manage your user settings and preferences.
 					</PopoverDescription>
