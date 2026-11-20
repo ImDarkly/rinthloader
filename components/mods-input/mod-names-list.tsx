@@ -7,6 +7,7 @@ import { removeModNameFromList } from "@/lib/slices/modNamesListSlice";
 
 export default function ModNamesList() {
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
+	const titles = useAppSelector((state) => state.modNamesList.titles);
 	const dispatch = useDispatch();
 
 	return (
@@ -15,7 +16,7 @@ export default function ModNamesList() {
 				{modNames.map((mod) => (
 					<Item key={mod} variant="muted">
 						<ItemContent>
-							<ItemTitle>{mod}</ItemTitle>
+							<ItemTitle>{titles[mod] ?? mod}</ItemTitle>
 						</ItemContent>
 						<ItemActions>
 							<Button

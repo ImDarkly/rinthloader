@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
-import { setModNamesList } from "@/lib/slices/modNamesListSlice";
+import { setModNamesList, setModTitles } from "@/lib/slices/modNamesListSlice";
 
 export function useImportModFiles() {
 	const dispatch = useAppDispatch();
@@ -15,6 +15,17 @@ export function useImportModFiles() {
 		dispatch(
 			setModNamesList(
 				detected.flatMap((result) => (result.modName ? [result.modName] : [])),
+			),
+		);
+		dispatch(
+			setModTitles(
+				Object.fromEntries(
+					detected.flatMap((result) =>
+						result.modName && result.title
+							? [[result.modName, result.title]]
+							: [],
+					),
+				),
 			),
 		);
 

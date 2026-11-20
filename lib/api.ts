@@ -96,9 +96,9 @@ export const getProjects = async (ids: string[]) => {
 };
 
 // Jars downloaded from Modrinth can be matched exactly by their file hash.
-export const getProjectSlugsByFileHash = async (hashes: string[]) => {
-  const slugs = new Map<string, string>();
-  if (!hashes.length) return slugs;
+export const getProjectsByFileHash = async (hashes: string[]) => {
+  const matches = new Map<string, { slug: string; title: string }>();
+  if (!hashes.length) return matches;
 
   const versionsResponse = await fetch(
     "https://api.modrinth.com/v2/version_files",
@@ -114,14 +114,15 @@ export const getProjectSlugsByFileHash = async (hashes: string[]) => {
     await versionsResponse.json();
 
   const projectIds = [...new Set(Object.values(versions).map((v) => v.project_id))];
-  if (!projectIds.length) return slugs;
+  if (!projectIds.length) return matches;
 
   const projects = await getProjects(projectIds);
-  const slugById = new Map(projects.map((project) => [project.id, project.slug]));
+  const projectById = new Map(projects.map((project) => [project.id, project]));
 
   for (const [hash, version] of Object.entries(versions)) {
-    const slug = slugById.get(version.project_id);
-    if (slug) slugs.set(hash, slug);
+    const project = projectById.get(version.project_id);
+    if (project)
+      matches.set(hash, { slug: project.slug, title: project.title });
   }
-  return slugs;
+  return matches;
 };

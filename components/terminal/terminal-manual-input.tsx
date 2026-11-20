@@ -1,7 +1,11 @@
 "use client";
 
 import { Textarea } from "../ui/textarea";
-import { setModNamesList } from "@/lib/slices/modNamesListSlice";
+import {
+	setModNamesList,
+	toDisplayNames,
+	toModNames,
+} from "@/lib/slices/modNamesListSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { useEffect, useState, useRef } from "react";
 import { useDebounceCallback } from "@/hooks/useDebounceCallback";
@@ -11,7 +15,10 @@ import { toast } from "sonner";
 export default function TerminalManualInput() {
 	const dispatch = useAppDispatch();
 	const modsList = useAppSelector((state) => state.modNamesList.modNames);
-	const [localValue, setLocalValue] = useState(modsList.join("\n"));
+	const titles = useAppSelector((state) => state.modNamesList.titles);
+	const [localValue, setLocalValue] = useState(
+		toDisplayNames(modsList, titles).join("\n"),
+	);
 	const isEditingRef = useRef(false);
 	const blurValidationIdRef = useRef(0);
 
@@ -20,7 +27,7 @@ export default function TerminalManualInput() {
 			.split("\n")
 			.map((line) => line.trim())
 			.filter(Boolean);
-		dispatch(setModNamesList(lines));
+		dispatch(setModNamesList(toModNames(lines, titles)));
 		isEditingRef.current = false;
 	}, 500);
 
@@ -29,10 +36,10 @@ export default function TerminalManualInput() {
 			// Use setTimeout to schedule the state update after the current render cycle,
 			// avoiding the "cascading render" warning while maintaining the sync logic.
 			setTimeout(() => {
-				setLocalValue(modsList.join("\n"));
+				setLocalValue(toDisplayNames(modsList, titles).join("\n"));
 			}, 0);
 		}
-	}, [modsList]);
+	}, [modsList, titles]);
 
 	const handleBlur = async () => {
 		const lines = localValue
@@ -40,11 +47,12 @@ export default function TerminalManualInput() {
 			.map((line) => line.trim())
 			.filter(Boolean);
 
-		dispatch(setModNamesList(lines));
+		const names = toModNames(lines, titles);
+		dispatch(setModNamesList(names));
 		const validationId = ++blurValidationIdRef.current;
 
 		// Validate mods after blur
-		const { invalid } = await validateModSlugs(lines);
+		const { invalid } = await validateModSlugs(names);
 		if (validationId !== blurValidationIdRef.current) return;
 
 		if (invalid.length > 0) {

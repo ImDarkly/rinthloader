@@ -1,11 +1,13 @@
 import JSZip from "jszip";
 import { parse } from "smol-toml";
-import { getProjectSlugsByFileHash } from "@/lib/api";
+import { getProjectsByFileHash } from "@/lib/api";
 import { validateModSlugs } from "@/lib/modValidation";
 
 export type DetectedModFile = {
 	fileName: string;
 	modName: string | null;
+	// Modrinth project title, set when modName is a slug matched by hash.
+	title?: string;
 	modId: string | null;
 	modLoader: string | null;
 };
@@ -44,16 +46,19 @@ export async function detectModFiles(
 	}
 
 	const knownHashes = hashes.filter((hash): hash is string => hash !== null);
-	const slugs = await getProjectSlugsByFileHash(knownHashes).catch(
-		() => new Map<string, string>(),
+	const projects = await getProjectsByFileHash(knownHashes).catch(
+		() => new Map<string, { slug: string; title: string }>(),
 	);
 
 	const ids = await getModIdsForMissingNames(
-		results.filter((_, index) => !slugs.has(hashes[index] ?? "")),
+		results.filter((_, index) => !projects.has(hashes[index] ?? "")),
 	);
 
 	return results.map((result, index) => {
-		const slug = slugs.get(hashes[index] ?? "") ?? ids.get(result);
+		const hash = hashes[index];
+		const project = hash ? projects.get(hash) : undefined;
+		if (project) return { ...result, modName: project.slug, title: project.title };
+		const slug = ids.get(result);
 		return slug ? { ...result, modName: slug } : result;
 	});
 }

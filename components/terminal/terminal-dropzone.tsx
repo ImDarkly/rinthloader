@@ -77,7 +77,7 @@ export default function TerminalDropzone() {
 								)}
 							>
 								{result.modName
-									? `✓ ${result.modName}`
+									? `✓ ${result.title ?? result.modName}`
 									: `! ${result.fileName}: no mod name detected`}
 							</li>
 						))}
