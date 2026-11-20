@@ -26,7 +26,7 @@ export function ModsField() {
 		importMode === "manual" ? modNames.join("\n") : "",
 	);
 	const [error, setError] = useState<string | null>(null);
-	const radioRefs = useRef<Partial<Record<ImportMode, HTMLButtonElement | null>>>({});
+	const radioRefs = useRef(new Map<ImportMode, HTMLButtonElement>());
 
 	const onDrop = async (files: File[]) => {
 		if (!files.length) return;
@@ -71,9 +71,10 @@ export function ModsField() {
 	const onRadioKeyDown = (e: React.KeyboardEvent) => {
 		if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
 		e.preventDefault();
-		const other = MODES.find(([v]) => v !== importMode)![0];
+		const other = MODES.find(([v]) => v !== importMode)?.[0];
+		if (!other) return;
 		pickMode(other);
-		radioRefs.current[other]?.focus();
+		radioRefs.current.get(other)?.focus();
 	};
 
 	const count = modNames.length;
@@ -95,10 +96,13 @@ export function ModsField() {
 							aria-checked={importMode === value}
 							tabIndex={importMode === value ? 0 : -1}
 							ref={(el) => {
-								radioRefs.current[value] = el;
+								if (el) radioRefs.current.set(value, el);
+								else radioRefs.current.delete(value);
 							}}
 							onKeyDown={onRadioKeyDown}
-							onClick={() => pickMode(value)}
+							onClick={() => {
+								pickMode(value);
+							}}
 							className="cursor-pointer px-1 outline-none hover:bg-foreground hover:text-background focus-visible:bg-foreground focus-visible:text-background"
 						>
 							<span aria-hidden="true">({importMode === value ? "•" : " "}) </span>

@@ -39,7 +39,9 @@ export function DropField({
 			}, 0);
 		};
 		document.addEventListener("pointerdown", onPointerDown);
-		return () => document.removeEventListener("pointerdown", onPointerDown);
+		return () => {
+			document.removeEventListener("pointerdown", onPointerDown);
+		};
 	}, [open]);
 
 	return (
@@ -71,7 +73,9 @@ export function DropField({
 					aria-haspopup="listbox"
 					aria-expanded={open}
 					aria-labelledby={`${id}-label ${id}-value`}
-					onClick={() => setOpen((o) => !o)}
+					onClick={() => {
+						setOpen((o) => !o);
+					}}
 					className="cursor-pointer outline-none hover:bg-foreground hover:text-background focus-visible:bg-foreground focus-visible:text-background"
 				>
 					<span aria-hidden="true">[ </span>

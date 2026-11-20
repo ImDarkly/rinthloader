@@ -15,7 +15,7 @@ function navigateToDownload(mods: string[], gameVersion: string, modLoader: stri
 		gameVersion,
 		modLoader,
 	});
-	window.location.href = `/api/download-mods?${params.toString()}`;
+	window.location.assign(`/api/download-mods?${params.toString()}`);
 }
 
 export function useTerminalDownload() {
@@ -45,7 +45,9 @@ export function useTerminalDownload() {
 		modCount: modsList.length,
 	});
 
-	const append = (...lines: LogLine[]) => setLog((prev) => [...prev, ...lines]);
+	const append = (...lines: LogLine[]) => {
+		setLog((prev) => [...prev, ...lines]);
+	};
 
 	const download = async () => {
 		if (isChecking) return;

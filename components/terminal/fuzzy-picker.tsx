@@ -77,7 +77,8 @@ export function FuzzyPicker({
 							move(active - 1);
 						} else if (e.key === "Enter") {
 							e.preventDefault();
-							if (hasMatches) onPick(filtered[active]);
+							const picked = filtered.at(active);
+							if (picked !== undefined) onPick(picked);
 						}
 					}}
 					placeholder="type to filter"
@@ -105,8 +106,12 @@ export function FuzzyPicker({
 							id={`${id}-${idx}`}
 							role="option"
 							aria-selected={item === value}
-							onMouseEnter={() => setCursor(idx)}
-							onClick={() => onPick(item)}
+							onMouseEnter={() => {
+								setCursor(idx);
+							}}
+							onClick={() => {
+								onPick(item);
+							}}
 							className="flex cursor-pointer gap-2"
 						>
 							<span aria-hidden="true" className="w-2 text-primary">
