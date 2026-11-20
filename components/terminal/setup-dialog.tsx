@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { useModrinthLoaders } from "@/hooks/useModrinthLoaders";
 import { useModrinthVersions } from "@/hooks/useModrinthVersions";
@@ -21,8 +20,7 @@ export function SetupDialog() {
 	const { versions, isLoading: versionsLoading } = useModrinthVersions();
 	const { modLoaders, isLoading: loadersLoading } = useModrinthLoaders();
 	const [isSnapshotsEnabled, setIsSnapshotsEnabled] = useSnapshotsContext();
-	const [isDetecting, setIsDetecting] = useState(false);
-	const download = useTerminalDownload(isDetecting);
+	const download = useTerminalDownload();
 
 	const versionItems = versions
 		.filter(
@@ -87,7 +85,10 @@ export function SetupDialog() {
 					failed={!loadersLoading && modLoaders.length === 0}
 					onPick={(v) => dispatch(setModLoader(v))}
 				/>
-				<ModsField isDetecting={isDetecting} setIsDetecting={setIsDetecting} />
+				<ModsField
+					isDetecting={download.isDetecting}
+					setIsDetecting={download.setIsDetecting}
+				/>
 				<StatusLog download={download} />
 			</div>
 

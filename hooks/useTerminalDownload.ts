@@ -18,12 +18,19 @@ function navigateToDownload(mods: string[], gameVersion: string, modLoader: stri
 	window.location.assign(`/api/download-mods?${params.toString()}`);
 }
 
-export function useTerminalDownload(isDetecting = false) {
+export function useTerminalDownload() {
 	const modsList = useAppSelector((state) => state.modNamesList.modNames);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 	const [log, setLog] = useState<LogLine[]>([]);
 	const [isChecking, setIsChecking] = useState(false);
+	const [isDetecting, setIsDetectingState] = useState(false);
+	// Set in the same tick a jar read starts, so a check finishing right after still sees it.
+	const detecting = useRef(false);
+	const setIsDetecting = (v: boolean) => {
+		detecting.current = v;
+		setIsDetectingState(v);
+	};
 	const [pending, setPending] = useState<{
 		valid: string[];
 		modsList: string[];
@@ -47,10 +54,10 @@ export function useTerminalDownload(isDetecting = false) {
 	});
 
 	// The setup as it is now, for checking a validation that finished after an edit or unmount.
-	const latest = useRef({ modsList, gameVersion, modLoader, isDetecting, mounted: true });
+	const latest = useRef({ modsList, gameVersion, modLoader, mounted: true });
 	useEffect(() => {
-		latest.current = { ...latest.current, modsList, gameVersion, modLoader, isDetecting };
-	}, [modsList, gameVersion, modLoader, isDetecting]);
+		latest.current = { ...latest.current, modsList, gameVersion, modLoader };
+	}, [modsList, gameVersion, modLoader]);
 	useEffect(() => {
 		const state = latest.current;
 		state.mounted = true;
@@ -83,7 +90,7 @@ export function useTerminalDownload(isDetecting = false) {
 			if (!now.mounted) return;
 			if (
 				// A jar read in progress is about to replace the list.
-				now.isDetecting ||
+				detecting.current ||
 				now.modsList !== modsList ||
 				now.gameVersion !== gameVersion ||
 				now.modLoader !== modLoader
@@ -110,7 +117,7 @@ export function useTerminalDownload(isDetecting = false) {
 
 	const downloadAnyway = () => {
 		if (!pendingValid || !gameVersion || !modLoader) return;
-		if (isDetecting) {
+		if (detecting.current) {
 			append({ kind: "warn", text: "wait for the jar files to finish reading" });
 			return;
 		}
@@ -122,5 +129,14 @@ export function useTerminalDownload(isDetecting = false) {
 		setPending(null);
 	};
 
-	return { log, isChecking, blocker, pendingValid, download, downloadAnyway };
+	return {
+		log,
+		isChecking,
+		isDetecting,
+		setIsDetecting,
+		blocker,
+		pendingValid,
+		download,
+		downloadAnyway,
+	};
 }
