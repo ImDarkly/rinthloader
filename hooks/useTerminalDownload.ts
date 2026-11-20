@@ -24,7 +24,20 @@ export function useTerminalDownload() {
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 	const [log, setLog] = useState<LogLine[]>([]);
 	const [isChecking, setIsChecking] = useState(false);
-	const [pendingValid, setPendingValid] = useState<string[] | null>(null);
+	const [pending, setPending] = useState<{
+		valid: string[];
+		modsList: string[];
+		gameVersion: string;
+		modLoader: string;
+	} | null>(null);
+	// Ignore a pending prompt once the list, version or loader it was validated against changes.
+	const pendingValid =
+		pending &&
+		pending.modsList === modsList &&
+		pending.gameVersion === gameVersion &&
+		pending.modLoader === modLoader
+			? pending.valid
+			: null;
 
 	const blocker = getBlocker({
 		gameVersion,
@@ -41,7 +54,7 @@ export function useTerminalDownload() {
 			return;
 		}
 
-		setPendingValid(null);
+		setPending(null);
 		setIsChecking(true);
 		append({
 			kind: "info",
@@ -60,7 +73,7 @@ export function useTerminalDownload() {
 				});
 				navigateToDownload(result.valid, gameVersion, modLoader);
 			} else if (proceed === "ask") {
-				setPendingValid(result.valid);
+				setPending({ valid: result.valid, modsList, gameVersion, modLoader });
 			}
 		} finally {
 			setIsChecking(false);
@@ -74,7 +87,7 @@ export function useTerminalDownload() {
 			text: `downloading ${pendingValid.length} mods as zip…`,
 		});
 		navigateToDownload(pendingValid, gameVersion, modLoader);
-		setPendingValid(null);
+		setPending(null);
 	};
 
 	return { log, isChecking, blocker, pendingValid, download, downloadAnyway };
