@@ -2,6 +2,7 @@
 import { getProject, getVersion } from "@/lib/api";
 import archiver from "archiver";
 import { PassThrough } from "stream";
+import { parseModsList } from "@/lib/modsList";
 
 export async function downloadMods(
   modsList: string,
@@ -11,10 +12,7 @@ export async function downloadMods(
   onProgress?: (p: number) => void,
   concurrencyLimit = 5,
 ) {
-  const mods = modsList
-    .split("\n")
-    .map((mod) => mod.trim())
-    .filter(Boolean);
+  const mods = parseModsList(modsList);
 
   const stream = new PassThrough();
   const archive = archiver("zip", { store: true });

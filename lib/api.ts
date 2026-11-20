@@ -84,11 +84,16 @@ export const getVersion = async (
   };
 };
 
-export const getFile = async (
-  id: string,
-  modLoader: string,
-  gameVersion: string,
-) => (await getVersion(id, modLoader, gameVersion))?.file;
+export const getProjects = async (ids: string[]) => {
+  const response = await fetch(
+    `https://api.modrinth.com/v2/projects?ids=${encodeURIComponent(JSON.stringify(ids))}`,
+    requestInit,
+  );
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  const projects: { id: string; slug: string; title: string }[] =
+    await response.json();
+  return projects;
+};
 
 // Jars downloaded from Modrinth can be matched exactly by their file hash.
 export const getProjectSlugsByFileHash = async (hashes: string[]) => {
@@ -111,12 +116,7 @@ export const getProjectSlugsByFileHash = async (hashes: string[]) => {
   const projectIds = [...new Set(Object.values(versions).map((v) => v.project_id))];
   if (!projectIds.length) return slugs;
 
-  const projectsResponse = await fetch(
-    `https://api.modrinth.com/v2/projects?ids=${encodeURIComponent(JSON.stringify(projectIds))}`,
-  );
-  if (!projectsResponse.ok)
-    throw new Error(`API error: ${projectsResponse.status}`);
-  const projects: { id: string; slug: string }[] = await projectsResponse.json();
+  const projects = await getProjects(projectIds);
   const slugById = new Map(projects.map((project) => [project.id, project.slug]));
 
   for (const [hash, version] of Object.entries(versions)) {
