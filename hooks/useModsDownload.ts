@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useIncludeDependenciesContext } from "@/app/page";
 import { useAppSelector } from "@/hooks/store";
 import { validateModSlugs } from "@/lib/modValidation";
 
@@ -9,6 +10,7 @@ export function useModsDownload() {
 	const modsList = useAppSelector((state) => state.modNamesList.modNames);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
+	const [includeDependencies] = useIncludeDependenciesContext();
 	const [isDownloading, setIsDownloading] = useState(false);
 	const isReady = Boolean(modsList.length && gameVersion && modLoader);
 
@@ -51,6 +53,7 @@ export function useModsDownload() {
 				modsList: valid.join("\n"),
 				gameVersion,
 				modLoader,
+				includeDependencies: String(includeDependencies),
 			});
 			window.location.href = `/api/download-mods?${params.toString()}`;
 		} finally {
