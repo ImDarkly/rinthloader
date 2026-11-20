@@ -1,19 +1,13 @@
 "use client";
 
-import TerminalHeader from "./terminal-header";
+import { SetupDialog } from "./setup-dialog";
 import TerminalFooter from "./terminal-footer";
-import TerminalForm from "./terminal-form";
-import BlinkingCursor from "./blinking-cursor";
 
-export default function TerminalApp() {
+export default function TerminalApp({ onClassic }: { onClassic?: () => void }) {
 	return (
-		<div className="flex min-h-dvh w-full flex-col items-start px-4 py-6 font-mono sm:px-6 sm:py-8">
-			<div className="flex w-full max-w-2xl flex-col gap-6">
-				<TerminalHeader />
-				<TerminalForm />
-				<TerminalFooter />
-				<BlinkingCursor />
-			</div>
+		<div className="flex min-h-dvh w-full flex-col items-center gap-8 px-4 py-10 font-mono sm:px-6">
+			<SetupDialog />
+			<TerminalFooter onClassic={onClassic} />
 		</div>
 	);
 }

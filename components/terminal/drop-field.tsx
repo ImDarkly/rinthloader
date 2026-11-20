@@ -33,7 +33,10 @@ export function DropField({
 		const onPointerDown = (e: PointerEvent) => {
 			if (root.current?.contains(e.target as Node)) return;
 			setOpen(false);
-			btn.current?.focus();
+			// Return focus to the field unless the click landed on another focusable control.
+			setTimeout(() => {
+				if (document.activeElement === document.body) btn.current?.focus();
+			}, 0);
 		};
 		document.addEventListener("pointerdown", onPointerDown);
 		return () => document.removeEventListener("pointerdown", onPointerDown);
@@ -78,7 +81,10 @@ export function DropField({
 			{open && (
 				<div
 					// Keep input focus on option clicks so the blur-close doesn't fire first.
-					onMouseDown={(e) => e.preventDefault()}
+					// Inputs are exempt so the caret can be placed and text drag-selected.
+					onMouseDown={(e) => {
+						if ((e.target as HTMLElement).tagName !== "INPUT") e.preventDefault();
+					}}
 					className="absolute top-full left-0 z-10 mt-1 w-full border-2 border-foreground bg-background p-2 shadow-[6px_6px_0_0_var(--muted-foreground)] sm:left-[calc(6rem+0.75rem)] sm:max-w-xs"
 				>
 					{items.length === 0 ? (
