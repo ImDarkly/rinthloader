@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { detectModFiles, type DetectedModFile } from "@/lib/mod-detector";
@@ -23,10 +23,13 @@ export function ModsField() {
 	const [results, setResults] = useState<DetectedModFile[]>([]);
 	const [isDetecting, setIsDetecting] = useState(false);
 	const [text, setText] = useState("");
+	const [error, setError] = useState<string | null>(null);
+	const radioRefs = useRef<Partial<Record<ImportMode, HTMLButtonElement | null>>>({});
 
 	const onDrop = async (files: File[]) => {
 		if (!files.length) return;
 		setIsDetecting(true);
+		setError(null);
 		try {
 			const detected = await detectModFiles(files);
 			setResults(detected);
@@ -35,6 +38,11 @@ export function ModsField() {
 					detected.flatMap((r) => (r.modName ? [r.modName] : [])),
 				),
 			);
+			// The jar drop now owns the list; names mode re-seeds from it.
+			setText("");
+		} catch {
+			setResults([]);
+			setError("could not read files");
 		} finally {
 			setIsDetecting(false);
 		}
@@ -58,6 +66,14 @@ export function ModsField() {
 		dispatch(setImportMode(mode));
 	};
 
+	const onRadioKeyDown = (e: React.KeyboardEvent) => {
+		if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+		e.preventDefault();
+		const other = MODES.find(([v]) => v !== importMode)![0];
+		pickMode(other);
+		radioRefs.current[other]?.focus();
+	};
+
 	const count = modNames.length;
 
 	return (
@@ -75,6 +91,11 @@ export function ModsField() {
 							type="button"
 							role="radio"
 							aria-checked={importMode === value}
+							tabIndex={importMode === value ? 0 : -1}
+							ref={(el) => {
+								radioRefs.current[value] = el;
+							}}
+							onKeyDown={onRadioKeyDown}
 							onClick={() => pickMode(value)}
 							className="cursor-pointer px-1 outline-none hover:bg-foreground hover:text-background focus-visible:bg-foreground focus-visible:text-background"
 						>
@@ -105,25 +126,30 @@ export function ModsField() {
 						{isDragActive ? "release to add" : "drop .jar files here"}{" "}
 						{!isDragActive && <DialogButton onClick={open}>browse</DialogButton>}
 					</div>
-					{isDetecting && <div aria-live="polite">detecting…</div>}
-					{!isDetecting && results.length > 0 && (
-						<ul className="flex flex-col gap-0.5">
-							{results.map((r) => (
-								<li
-									key={r.fileName}
-									className={cn(
-										"break-words",
-										!r.modName && "text-amber-600 dark:text-amber-400",
-									)}
-								>
-									{r.modName
-										? `✓ ${r.modName}`
-										: `! ${r.fileName}  no mod name found`}
-								</li>
-							))}
-						</ul>
-					)}
-					{!isDetecting && results.length === 0 && (
+					<div aria-live="polite">
+						{isDetecting && <div>detecting…</div>}
+						{!isDetecting && error && (
+							<div className="text-destructive">✗ {error}</div>
+						)}
+						{!isDetecting && !error && results.length > 0 && (
+							<ul className="flex flex-col gap-0.5">
+								{results.map((r) => (
+									<li
+										key={r.fileName}
+										className={cn(
+											"break-words",
+											!r.modName && "text-amber-600 dark:text-amber-400",
+										)}
+									>
+										{r.modName
+											? `✓ ${r.modName}`
+											: `! ${r.fileName}  no mod name found`}
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+					{!isDetecting && !error && results.length === 0 && (
 						<div className="text-muted-foreground">
 							names are read from Fabric jars
 						</div>
@@ -135,6 +161,8 @@ export function ModsField() {
 					value={text}
 					onChange={(e) => {
 						setText(e.target.value);
+						setResults([]);
+						setError(null);
 						dispatch(setModNamesList(parseModNames(e.target.value)));
 					}}
 					placeholder={"sodium\nlithium\niris"}
