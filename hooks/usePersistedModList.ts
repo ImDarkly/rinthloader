@@ -3,6 +3,19 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
 import { setModNamesList, setModTitles } from "@/lib/slices/modNamesListSlice";
 
+export function readSavedModList() {
+	const storedModNames = localStorage.getItem("modNames");
+	const storedTitles = localStorage.getItem("modTitles");
+	const storedModLoader = localStorage.getItem("modLoader");
+	return {
+		modNames: (storedModNames ? JSON.parse(storedModNames) : []) as string[],
+		titles: (storedTitles ? JSON.parse(storedTitles) : {}) as Record<string, string>,
+		modLoader: (storedModLoader ? JSON.parse(storedModLoader) : null) as
+			| string
+			| null,
+	};
+}
+
 export default function usePersistedModList() {
 	const dispatch = useAppDispatch();
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
@@ -11,12 +24,10 @@ export default function usePersistedModList() {
 	const isFirstWrite = useRef(true);
 
 	useEffect(() => {
-		const storedModNames = localStorage.getItem("modNames");
-		const storedTitles = localStorage.getItem("modTitles");
-		const storedModLoader = localStorage.getItem("modLoader");
-		if (storedModNames) dispatch(setModNamesList(JSON.parse(storedModNames)));
-		if (storedTitles) dispatch(setModTitles(JSON.parse(storedTitles)));
-		if (storedModLoader) dispatch(setModLoader(JSON.parse(storedModLoader)));
+		const saved = readSavedModList();
+		if (saved.modNames.length) dispatch(setModNamesList(saved.modNames));
+		dispatch(setModTitles(saved.titles));
+		if (saved.modLoader) dispatch(setModLoader(saved.modLoader));
 	}, [dispatch]);
 
 	useEffect(() => {
