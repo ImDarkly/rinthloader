@@ -1,16 +1,80 @@
-import { getProject, getProjects, getVersion, type ModDependency } from "@/lib/api";
+import {
+  findProjectByTitle,
+  getProject,
+  getProjects,
+  getVersion,
+  type ModDependency,
+} from "@/lib/api";
 
 // Blur and download validate the same names, so look each one up once.
 const projectIdCache = new Map<string, Promise<string | undefined>>();
 
-function getCachedProject(slug: string) {
+function getCachedProject(slug: string, lookup = getProject) {
   const key = slug.toLowerCase();
   let projectId = projectIdCache.get(key);
   if (!projectId) {
-    projectId = getProject(slug);
+    projectId = lookup(slug);
     projectIdCache.set(key, projectId);
     projectId.catch(() => projectIdCache.delete(key));
   }
+  return projectId;
+}
+
+// Only names that could be slugs go in the bulk request, so a name like
+// "Fabric API" can't make Modrinth reject the whole list.
+const slugPattern = /^[\w.+-]{3,64}$/;
+const bulkLimit = 100;
+
+function prefetchProjects(slugs: string[]) {
+  const prefetched = new Map<string, Promise<string | undefined>>();
+  const uncached = new Map<string, string>();
+  for (const slug of slugs) {
+    const key = slug.toLowerCase();
+    if (
+      slugPattern.test(slug) &&
+      !projectIdCache.has(key) &&
+      !uncached.has(key)
+    ) {
+      uncached.set(key, slug);
+    }
+  }
+
+  const entries = [...uncached];
+  for (let i = 0; i < entries.length; i += bulkLimit) {
+    const chunk = entries.slice(i, i + bulkLimit);
+    const found = getProjects(chunk.map(([, slug]) => slug)).then((projects) => {
+      const projectIds = new Map<string, string>();
+      for (const project of projects) {
+        projectIds.set(project.id.toLowerCase(), project.id);
+        projectIds.set(project.slug.toLowerCase(), project.id);
+      }
+      return projectIds;
+    });
+    for (const [key] of chunk) {
+      const projectId = found.then((projectIds) => projectIds.get(key));
+      // A worker awaits this later; mark it handled so a failed bulk
+      // request isn't reported as unhandled in the meantime.
+      projectId.catch(() => {});
+      prefetched.set(key, projectId);
+    }
+  }
+  return prefetched;
+}
+
+// Names the bulk request missed fall back to title search here, inside the
+// caller's concurrency limit.
+async function resolveProject(
+  slug: string,
+  prefetched: Map<string, Promise<string | undefined>>,
+) {
+  const key = slug.toLowerCase();
+  const bulk = prefetched.get(key);
+  if (!bulk) return getCachedProject(slug);
+
+  const projectId = await bulk;
+  if (!projectId) return getCachedProject(slug, findProjectByTitle);
+
+  projectIdCache.set(key, Promise.resolve(projectId));
   return projectId;
 }
 
@@ -77,6 +141,7 @@ export async function validateModSlugs(
   const invalid: string[] = [];
   const unavailable: string[] = [];
   const errors: string[] = [];
+  const prefetched = prefetchProjects(slugs);
   const validIds = new Set<string>();
   const dependencyIds: string[] = [];
 
@@ -85,7 +150,7 @@ export async function validateModSlugs(
     const results = await Promise.all(
       chunk.map(async (slug) => {
         try {
-          const projectId = await getCachedProject(slug);
+          const projectId = await resolveProject(slug, prefetched);
           if (!projectId) return { slug, status: "invalid" };
           if (!target) return { slug, status: "valid" };
 

@@ -38,7 +38,7 @@ export const getProject = async (name: string) => {
 };
 
 // Mod names like "Fabric API" aren't slugs, so look them up by exact title.
-const findProjectByTitle = async (title: string) => {
+export const findProjectByTitle = async (title: string) => {
   const params = new URLSearchParams({
     query: title,
     facets: JSON.stringify([["project_type:mod"]]),
