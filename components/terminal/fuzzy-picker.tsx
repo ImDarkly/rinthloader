@@ -84,11 +84,11 @@ export function FuzzyPicker({
 			step(e.deltaMode === 1 ? e.deltaY * ROW_PX : e.deltaY);
 		};
 		const onTouchStart = (e: TouchEvent) => {
-			lastY = e.touches[0]?.clientY ?? null;
+			lastY = e.touches.item(0)?.clientY ?? null;
 			acc = 0;
 		};
 		const onTouchMove = (e: TouchEvent) => {
-			const y = e.touches[0]?.clientY;
+			const y = e.touches.item(0)?.clientY;
 			if (y === undefined || lastY === null) return;
 			e.preventDefault();
 			step(lastY - y);
