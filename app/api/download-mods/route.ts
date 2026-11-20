@@ -6,6 +6,8 @@ export async function GET(request: Request) {
   const modsList = searchParams.get("modsList") || "";
   const gameVersion = searchParams.get("gameVersion") || "";
   const modLoader = searchParams.get("modLoader") || "";
+  const includeDependencies =
+    searchParams.get("includeDependencies") !== "false";
 
   const count = parseModsList(modsList).length;
   if (count > MAX_MODS_PER_DOWNLOAD) {
@@ -15,7 +17,12 @@ export async function GET(request: Request) {
     );
   }
 
-  const nodeStream = await downloadMods(modsList, gameVersion, modLoader);
+  const nodeStream = await downloadMods(
+    modsList,
+    gameVersion,
+    modLoader,
+    includeDependencies,
+  );
   const filename = ["mods", gameVersion, modLoader]
     .filter(Boolean)
     .join("-")
