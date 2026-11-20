@@ -40,7 +40,23 @@ export function DropField({
 	}, [open]);
 
 	return (
-		<div ref={root} className="relative">
+		<div
+			ref={root}
+			className="relative"
+			onKeyDown={(e) => {
+				if (open && e.key === "Escape") {
+					e.preventDefault();
+					e.stopPropagation();
+					close();
+				}
+			}}
+			onBlur={(e) => {
+				// Focus left the field entirely: close without stealing focus back.
+				if (open && !root.current?.contains(e.relatedTarget as Node | null)) {
+					setOpen(false);
+				}
+			}}
+		>
 			<div className="flex flex-wrap items-center gap-x-3">
 				<span id={`${id}-label`} className="w-24 shrink-0">
 					{label}
@@ -61,12 +77,8 @@ export function DropField({
 			</div>
 			{open && (
 				<div
-					onKeyDown={(e) => {
-						if (e.key === "Escape") {
-							e.stopPropagation();
-							close();
-						}
-					}}
+					// Keep input focus on option clicks so the blur-close doesn't fire first.
+					onMouseDown={(e) => e.preventDefault()}
 					className="absolute top-full left-0 z-10 mt-1 w-full border-2 border-foreground bg-background p-2 shadow-[6px_6px_0_0_var(--muted-foreground)] sm:left-[calc(6rem+0.75rem)] sm:max-w-xs"
 				>
 					{items.length === 0 ? (

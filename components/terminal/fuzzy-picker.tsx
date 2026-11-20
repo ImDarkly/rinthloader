@@ -4,6 +4,14 @@ import { useMemo, useState } from "react";
 import { filterItems } from "@/lib/terminal/logic";
 import { cn } from "@/lib/utils";
 
+/** Minimal-scroll window start that keeps `active` visible. */
+function windowStart(start: number, active: number, len: number, rows: number) {
+	let s = Math.max(0, Math.min(start, len - rows));
+	if (active < s) s = active;
+	else if (active >= s + rows) s = active - rows + 1;
+	return s;
+}
+
 /** fzf-style filter + list. Type to filter, up/down to move, enter to pick, or click. */
 export function FuzzyPicker({
 	id,
@@ -27,14 +35,21 @@ export function FuzzyPicker({
 		const idx = value ? items.indexOf(value) : -1;
 		return idx >= 0 ? idx : 0;
 	});
+	const [winStart, setWinStart] = useState(() => {
+		const idx = value ? items.indexOf(value) : -1;
+		return Math.max(0, idx - Math.floor(rows / 2));
+	});
 	const filtered = useMemo(() => filterItems(items, query), [items, query]);
 
 	// Derived, so it stays valid when the filtered list shrinks.
 	const active = Math.max(0, Math.min(cursor, filtered.length - 1));
-	const start = Math.max(
-		0,
-		Math.min(active - Math.floor(rows / 2), filtered.length - rows),
-	);
+	const start = windowStart(winStart, active, filtered.length, rows);
+	// Keyboard moves scroll the window minimally; hover never moves it.
+	const move = (next: number) => {
+		const c = Math.max(0, Math.min(next, filtered.length - 1));
+		setCursor(c);
+		setWinStart(windowStart(start, c, filtered.length, rows));
+	};
 	const visible = filtered.slice(start, start + rows);
 	const hasMatches = filtered.length > 0;
 
@@ -51,14 +66,15 @@ export function FuzzyPicker({
 					onChange={(e) => {
 						setQuery(e.target.value);
 						setCursor(0);
+						setWinStart(0);
 					}}
 					onKeyDown={(e) => {
 						if (e.key === "ArrowDown") {
 							e.preventDefault();
-							setCursor(Math.min(active + 1, filtered.length - 1));
+							move(active + 1);
 						} else if (e.key === "ArrowUp") {
 							e.preventDefault();
-							setCursor(Math.max(active - 1, 0));
+							move(active - 1);
 						} else if (e.key === "Enter") {
 							e.preventDefault();
 							if (hasMatches) onPick(filtered[active]);
