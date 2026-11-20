@@ -5,6 +5,7 @@ import { getProjectSlugsByFileHash } from "@/lib/api";
 export type DetectedModFile = {
 	fileName: string;
 	modName: string | null;
+	modId: string | null;
 	modLoader: string | null;
 };
 
@@ -21,16 +22,22 @@ export async function detectModFiles(
 			hash = await sha1(buffer).catch(() => null);
 			const zip = await JSZip.loadAsync(buffer);
 
-			const { name, modLoader } = await readModMetadata(zip);
-			const modName =
-				typeof name === "string" && name.trim() ? name.trim() : null;
+			const { name, id, modLoader } = await readModMetadata(zip);
+			const modId = asText(id);
+			const modName = asText(name) ?? modId;
 			results.push({
 				fileName: file.name,
 				modName,
+				modId,
 				modLoader: modName ? modLoader : null,
 			});
 		} catch {
-			results.push({ fileName: file.name, modName: null, modLoader: null });
+			results.push({
+				fileName: file.name,
+				modName: null,
+				modId: null,
+				modLoader: null,
+			});
 		}
 		hashes.push(hash);
 	}
@@ -47,6 +54,10 @@ export async function detectModFiles(
 	});
 }
 
+function asText(value: unknown) {
+	return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 async function sha1(buffer: ArrayBuffer) {
 	const digest = await crypto.subtle.digest("SHA-1", buffer);
 	return Array.from(new Uint8Array(digest))
@@ -56,17 +67,21 @@ async function sha1(buffer: ArrayBuffer) {
 
 async function readModMetadata(
 	zip: JSZip,
-): Promise<{ name: unknown; modLoader: string | null }> {
+): Promise<{ name: unknown; id: unknown; modLoader: string | null }> {
 	const fabricFile = zip.file("fabric.mod.json");
 	if (fabricFile) {
 		const data = JSON.parse(await fabricFile.async("string"));
-		return { name: data.name ?? data.id, modLoader: "fabric" };
+		return { name: data.name, id: data.id, modLoader: "fabric" };
 	}
 
 	const quiltFile = zip.file("quilt.mod.json");
 	if (quiltFile) {
 		const loader = JSON.parse(await quiltFile.async("string")).quilt_loader;
-		return { name: loader?.metadata?.name ?? loader?.id, modLoader: "quilt" };
+		return {
+			name: loader?.metadata?.name,
+			id: loader?.id,
+			modLoader: "quilt",
+		};
 	}
 
 	const neoForgeFile = zip.file("META-INF/neoforge.mods.toml");
@@ -80,12 +95,13 @@ async function readModMetadata(
 		const isPlaceholder =
 			typeof mod?.displayName === "string" && mod.displayName.includes("${");
 		return {
-			name: isPlaceholder ? mod?.modId : (mod?.displayName ?? mod?.modId),
+			name: isPlaceholder ? null : mod?.displayName,
+			id: mod?.modId,
 			modLoader: neoForgeFile ? "neoforge" : "forge",
 		};
 	}
 
-	return { name: null, modLoader: null };
+	return { name: null, id: null, modLoader: null };
 }
 
 export function getMostCommonModLoader(
