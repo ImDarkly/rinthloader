@@ -1,8 +1,9 @@
 import {
   findProjectByTitle,
-  getFile,
   getProject,
   getProjects,
+  getVersion,
+  type ModDependency,
 } from "@/lib/api";
 
 // Blur and download validate the same names, so look each one up once.
@@ -41,7 +42,14 @@ function prefetchProjects(slugs: string[]) {
   const entries = [...uncached];
   for (let i = 0; i < entries.length; i += bulkLimit) {
     const chunk = entries.slice(i, i + bulkLimit);
-    const found = getProjects(chunk.map(([, slug]) => slug));
+    const found = getProjects(chunk.map(([, slug]) => slug)).then((projects) => {
+      const projectIds = new Map<string, string>();
+      for (const project of projects) {
+        projectIds.set(project.id.toLowerCase(), project.id);
+        projectIds.set(project.slug.toLowerCase(), project.id);
+      }
+      return projectIds;
+    });
     for (const [key] of chunk) {
       const projectId = found.then((projectIds) => projectIds.get(key));
       // A worker awaits this later; mark it handled so a failed bulk
@@ -70,15 +78,57 @@ async function resolveProject(
   return projectId;
 }
 
+type Target = { gameVersion: string; modLoader: string };
+
+const requiredIds = (dependencies: ModDependency[]) =>
+  dependencies.flatMap((dependency) =>
+    dependency.dependency_type === "required" && dependency.project_id
+      ? [dependency.project_id]
+      : [],
+  );
+
+// Mirrors the zip: required dependencies with a matching build, and theirs.
+async function findAddedDependencies(
+  listedIds: Set<string>,
+  dependencyIds: string[],
+  target: Target,
+) {
+  const seen = new Set(listedIds);
+  const added: string[] = [];
+  let pending = [...new Set(dependencyIds)].filter((id) => !seen.has(id));
+
+  while (pending.length) {
+    pending.forEach((id) => seen.add(id));
+    const versions = await Promise.all(
+      pending.map((id) => getVersion(id, target.modLoader, target.gameVersion)),
+    );
+    const next: string[] = [];
+    versions.forEach((version, i) => {
+      if (!version?.file) return;
+      added.push(pending[i]);
+      for (const id of requiredIds(version.dependencies)) {
+        if (!seen.has(id) && !next.includes(id)) next.push(id);
+      }
+    });
+    pending = next;
+  }
+
+  if (!added.length) return [];
+  const projects = await getProjects(added);
+  const titleById = new Map(projects.map((project) => [project.id, project.title]));
+  return added.map((id) => titleById.get(id) ?? id);
+}
+
 export async function validateModSlugs(
   slugs: string[],
   concurrencyLimit = 5,
-  target?: { gameVersion: string; modLoader: string },
+  target?: Target,
 ): Promise<{
   valid: string[];
   invalid: string[];
   unavailable: string[];
   errors: string[];
+  dependencies: string[];
 }> {
   if (concurrencyLimit <= 0) {
     throw new Error("concurrencyLimit must be greater than 0");
@@ -88,6 +138,8 @@ export async function validateModSlugs(
   const unavailable: string[] = [];
   const errors: string[] = [];
   const prefetched = prefetchProjects(slugs);
+  const validIds = new Set<string>();
+  const dependencyIds: string[] = [];
 
   for (let i = 0; i < slugs.length; i += concurrencyLimit) {
     const chunk = slugs.slice(i, i + concurrencyLimit);
@@ -98,12 +150,15 @@ export async function validateModSlugs(
           if (!projectId) return { slug, status: "invalid" };
           if (!target) return { slug, status: "valid" };
 
-          const file = await getFile(
+          const version = await getVersion(
             projectId,
             target.modLoader,
             target.gameVersion,
           );
-          return { slug, status: file ? "valid" : "unavailable" };
+          if (!version?.file) return { slug, status: "unavailable" };
+          validIds.add(projectId);
+          dependencyIds.push(...requiredIds(version.dependencies));
+          return { slug, status: "valid" };
         } catch {
           return { slug, status: "error" };
         }
@@ -118,5 +173,14 @@ export async function validateModSlugs(
     }
   }
 
-  return { valid, invalid, unavailable, errors };
+  let dependencies: string[] = [];
+  if (target && errors.length === 0) {
+    try {
+      dependencies = await findAddedDependencies(validIds, dependencyIds, target);
+    } catch {
+      // The zip still gets its dependencies; only the notice is lost.
+    }
+  }
+
+  return { valid, invalid, unavailable, errors, dependencies };
 }

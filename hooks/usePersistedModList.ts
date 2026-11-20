@@ -3,6 +3,17 @@ import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
 import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 
+export function readSavedModList() {
+	const storedModNames = localStorage.getItem("modNames");
+	const storedModLoader = localStorage.getItem("modLoader");
+	return {
+		modNames: (storedModNames ? JSON.parse(storedModNames) : []) as string[],
+		modLoader: (storedModLoader ? JSON.parse(storedModLoader) : null) as
+			| string
+			| null,
+	};
+}
+
 export default function usePersistedModList() {
 	const dispatch = useAppDispatch();
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
@@ -10,10 +21,9 @@ export default function usePersistedModList() {
 	const isFirstWrite = useRef(true);
 
 	useEffect(() => {
-		const storedModNames = localStorage.getItem("modNames");
-		const storedModLoader = localStorage.getItem("modLoader");
-		if (storedModNames) dispatch(setModNamesList(JSON.parse(storedModNames)));
-		if (storedModLoader) dispatch(setModLoader(JSON.parse(storedModLoader)));
+		const saved = readSavedModList();
+		if (saved.modNames.length) dispatch(setModNamesList(saved.modNames));
+		if (saved.modLoader) dispatch(setModLoader(saved.modLoader));
 	}, [dispatch]);
 
 	useEffect(() => {
