@@ -38,4 +38,20 @@ const modNamesListSlice = createSlice({
 export const { setModNamesList, setModTitles, removeModNameFromList } =
     modNamesListSlice.actions;
 
+// Show titles in place of slugs, and turn shown titles back into slugs.
+export const toDisplayNames = (
+    modNames: string[],
+    titles: Record<string, string>,
+) => modNames.map((name) => titles[name] ?? name);
+
+export const toModNames = (
+    lines: string[],
+    titles: Record<string, string>,
+) => {
+    const slugByTitle = new Map(
+        Object.entries(titles).map(([slug, title]) => [title, slug]),
+    );
+    return lines.map((line) => slugByTitle.get(line) ?? line);
+};
+
 export default modNamesListSlice.reducer;
