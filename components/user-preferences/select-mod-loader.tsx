@@ -27,6 +27,7 @@ export function SelectModLoader() {
 				value={modLoader}
 			>
 				<ComboboxInput
+					id="modLoader"
 					className="max-w-32"
 					placeholder="Select a mod loader"
 				/>

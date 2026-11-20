@@ -7,7 +7,7 @@ export default function AutoModsImport() {
 			<FieldLabel htmlFor="mod">Auto Import</FieldLabel>
 			<Dropzone />
 			<FieldDescription>
-				Click or drag to upload. Only Fabric mods supported.
+				Click or drag to upload. Fabric, Quilt, Forge and NeoForge mods supported.
 			</FieldDescription>
 		</Field>
 	);

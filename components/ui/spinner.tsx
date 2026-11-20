@@ -3,9 +3,8 @@ import { RiLoader2Line } from "@remixicon/react";
 
 function Spinner({
 	className,
-	children,
 	...props
-}: React.ComponentProps<"svg">) {
+}: React.ComponentProps<typeof RiLoader2Line>) {
 	return (
 		<RiLoader2Line
 			role="status"

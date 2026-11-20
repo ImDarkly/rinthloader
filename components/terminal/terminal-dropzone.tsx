@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { useDispatch } from "react-redux";
 import { useAppSelector } from "@/hooks/store";
-import { detectModFiles, type DetectedModFile } from "@/lib/mod-detector";
+import { useImportModFiles } from "@/hooks/useImportModFiles";
+import { type DetectedModFile } from "@/lib/mod-detector";
 import getFilesFromEvent from "@/lib/getFilesFromEvent";
-import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 import { cn } from "@/lib/utils";
 
 export default function TerminalDropzone() {
-	const dispatch = useDispatch();
+	const importModFiles = useImportModFiles();
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
 	const [results, setResults] = useState<DetectedModFile[]>([]);
 	const [fileCount, setFileCount] = useState(0);
@@ -21,16 +20,9 @@ export default function TerminalDropzone() {
 
 		setIsDetecting(true);
 		try {
-			const detected = await detectModFiles(files);
+			const detected = await importModFiles(files);
 			setResults(detected);
 			setFileCount(files.length);
-			dispatch(
-				setModNamesList(
-					detected.flatMap((result) =>
-						result.modName ? [result.modName] : [],
-					),
-				),
-			);
 		} finally {
 			setIsDetecting(false);
 		}
@@ -65,7 +57,7 @@ export default function TerminalDropzone() {
 						: "[choose .jar files] or drop them here"}
 			</div>
 			<p className="text-xs text-muted-foreground">
-				automatic detection: Fabric jars only
+				automatic detection: Fabric, Quilt, Forge and NeoForge jars
 			</p>
 
 			{fileCount > 0 && (
@@ -85,7 +77,7 @@ export default function TerminalDropzone() {
 								)}
 							>
 								{result.modName
-									? `✓ ${result.modName}`
+									? `✓ ${result.title ?? result.modName}`
 									: `! ${result.fileName}: no mod name detected`}
 							</li>
 						))}
