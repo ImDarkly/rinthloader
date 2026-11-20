@@ -7,6 +7,7 @@ export interface Version {
 
 export interface ModLoader {
 	name: string;
+	supported_project_types: string[];
 }
 
 export type SnapshotsState = [boolean, (v: boolean) => void];

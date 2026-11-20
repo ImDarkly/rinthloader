@@ -25,19 +25,28 @@ export function getBlocker(s: {
   modLoader: string | null;
   modCount: number;
   isDetecting?: boolean;
+  maxMods?: number;
 }): string | null {
   if (!s.gameVersion) return "pick a minecraft version first";
   if (!s.modLoader) return "pick a mod loader first";
   if (s.isDetecting) return "wait for the jar files to finish reading";
   if (s.modCount < 1) return "add at least one mod first";
+  if (s.maxMods !== undefined && s.modCount > s.maxMods) {
+    return `too many mods: ${s.modCount}, the limit is ${s.maxMods} per download`;
+  }
   return null;
 }
 
-export function summarizeValidation(r: {
-  valid: string[];
-  invalid: string[];
-  errors: string[];
-}): { lines: LogLine[]; proceed: "all" | "ask" | "none" } {
+export function summarizeValidation(
+  r: {
+    valid: string[];
+    invalid: string[];
+    errors: string[];
+    unavailable?: string[];
+    dependencies?: string[];
+  },
+  target?: { gameVersion: string; modLoader: string },
+): { lines: LogLine[]; proceed: "all" | "ask" | "none" } {
   if (r.errors.length > 0) {
     return {
       lines: [
@@ -46,11 +55,28 @@ export function summarizeValidation(r: {
       proceed: "none",
     };
   }
+  const unavailable = r.unavailable ?? [];
+  const dependencies = r.dependencies ?? [];
   const lines: LogLine[] = [{ kind: "ok", text: `${r.valid.length} found` }];
+  if (dependencies.length > 0) {
+    const noun = dependencies.length === 1 ? "dependency" : "dependencies";
+    lines.push({
+      kind: "ok",
+      text: `${dependencies.length} required ${noun} added: ${dependencies.join(", ")}`,
+    });
+  }
   if (r.invalid.length > 0) {
     lines.push({ kind: "warn", text: `${r.invalid.length} not found: ${r.invalid.join(", ")}` });
   }
-  const proceed = r.valid.length === 0 ? "none" : r.invalid.length > 0 ? "ask" : "all";
+  if (unavailable.length > 0) {
+    const build = target ? `${target.modLoader} ${target.gameVersion}` : "this version";
+    lines.push({
+      kind: "warn",
+      text: `${unavailable.length} without a ${build} build: ${unavailable.join(", ")}`,
+    });
+  }
+  const skipped = r.invalid.length + unavailable.length;
+  const proceed = r.valid.length === 0 ? "none" : skipped > 0 ? "ask" : "all";
   return { lines, proceed };
 }
 

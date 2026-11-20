@@ -1,22 +1,17 @@
 import { Input } from "../ui/input";
-import { getModNames } from "@/lib/mod-detector";
 import getFilesFromEvent from "@/lib/getFilesFromEvent";
-import { useDispatch } from "react-redux";
-import { setModNamesList } from "@/lib/slices/modNamesListSlice";
 import { useDropzone } from "react-dropzone";
 import { useAppSelector } from "@/hooks/store";
-import { useState } from "react";
+import { useImportModFiles } from "@/hooks/useImportModFiles";
 
 export default function Dropzone() {
-	const dispatch = useDispatch();
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
-	const [uploadedFileCount, setUploadedFileCount] = useState(0);
+
+	const importModFiles = useImportModFiles();
 
 	const onDrop = async (files: File[]) => {
 		if (!files.length) return;
-		const result = await getModNames(files);
-		dispatch(setModNamesList(result));
-		setUploadedFileCount(files.length);
+		await importModFiles(files);
 	};
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -34,8 +29,8 @@ export default function Dropzone() {
 			<Input id="mod" className="h-8" {...getInputProps()} />
 			{isDragActive
 				? "Drop .jar files here"
-				: uploadedFileCount !== 0 && modNames.length !== 0
-					? `${uploadedFileCount} mods uploaded`
+				: modNames.length !== 0
+					? `${modNames.length} ${modNames.length === 1 ? "mod" : "mods"} ready`
 					: "Drag .jar files or click"}
 		</div>
 	);

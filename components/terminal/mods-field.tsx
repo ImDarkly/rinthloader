@@ -3,10 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
-import { detectModFiles, type DetectedModFile } from "@/lib/mod-detector";
+import { useImportModFiles } from "@/hooks/useImportModFiles";
+import type { DetectedModFile } from "@/lib/mod-detector";
 import getFilesFromEvent from "@/lib/getFilesFromEvent";
 import { parseModNames } from "@/lib/terminal/logic";
-import { setModNamesList } from "@/lib/slices/modNamesListSlice";
+import {
+	setModNamesList,
+	toDisplayNames,
+	toModNames,
+} from "@/lib/slices/modNamesListSlice";
 import { setImportMode, type ImportMode } from "@/lib/slices/uiSlice";
 import { cn } from "@/lib/utils";
 import { DialogButton } from "./dialog-button";
@@ -26,11 +31,21 @@ export function ModsField({
 	const dispatch = useAppDispatch();
 	const importMode = useAppSelector((state) => state.ui.importMode);
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
+	const titles = useAppSelector((state) => state.modNamesList.titles);
+	const importModFiles = useImportModFiles();
 	const [results, setResults] = useState<DetectedModFile[]>([]);
-	const [text, setText] = useState(() =>
-		importMode === "manual" ? modNames.join("\n") : "",
-	);
+	const [loaderNote, setLoaderNote] = useState<string | null>(null);
+	const [text, setText] = useState(() => toDisplayNames(modNames, titles).join("\n"));
 	const [error, setError] = useState<string | null>(null);
+
+	// Keep the names box in step with list changes from elsewhere (a jar drop, a shared
+	// link, the saved list), but never rewrite what the user is typing.
+	const [ownList, setOwnList] = useState<string[] | null>(null);
+	const [seenList, setSeenList] = useState(modNames);
+	if (modNames !== seenList) {
+		setSeenList(modNames);
+		if (modNames !== ownList) setText(toDisplayNames(modNames, titles).join("\n"));
+	}
 	const radioRefs = useRef<Map<ImportMode, HTMLButtonElement>>(new Map());
 	// Only the latest import may write results; edits, mode switches and newer drops bump it.
 	const importId = useRef(0);
@@ -53,17 +68,14 @@ export function ModsField({
 		const id = ++importId.current;
 		setIsDetecting(true);
 		setError(null);
+		setLoaderNote(null);
 		try {
-			const detected = await detectModFiles(files);
+			const detected = await importModFiles(files, {
+				isCurrent: () => id === importId.current,
+				onLoaderChange: setLoaderNote,
+			});
 			if (id !== importId.current) return;
 			setResults(detected);
-			dispatch(
-				setModNamesList(
-					detected.flatMap((r) => (r.modName ? [r.modName] : [])),
-				),
-			);
-			// The jar drop now owns the list; names mode re-seeds from it.
-			setText("");
 		} catch {
 			if (id !== importId.current) return;
 			setResults([]);
@@ -86,9 +98,6 @@ export function ModsField({
 		if (mode === importMode) return;
 		cancelDetection();
 		// Switching modes never touches the mod list; only edits do.
-		if (mode === "manual" && !text.trim() && modNames.length > 0) {
-			setText(modNames.join("\n"));
-		}
 		dispatch(setImportMode(mode));
 	};
 
@@ -180,15 +189,21 @@ export function ModsField({
 									>
 										<span aria-hidden="true">{r.modName ? "✓ " : "! "}</span>
 										{!r.modName && <span className="sr-only">warning: </span>}
-										{r.modName ?? `${r.fileName}  no mod name found`}
+										{r.modName ? (r.title ?? r.modName) : `${r.fileName}  no mod name found`}
 									</li>
 								))}
 							</ul>
 						)}
+						{!isDetecting && loaderNote && (
+							<div className="mt-1 text-muted-foreground">
+								<span aria-hidden="true">&gt; </span>
+								loader set to {loaderNote} to match the jars
+							</div>
+						)}
 					</div>
 					{!isDetecting && !error && results.length === 0 && (
 						<div className="text-muted-foreground">
-							names are read from Fabric jars
+							names are read from Fabric, Quilt, Forge and NeoForge jars
 						</div>
 					)}
 				</div>
@@ -201,7 +216,9 @@ export function ModsField({
 						setText(e.target.value);
 						setResults([]);
 						setError(null);
-						dispatch(setModNamesList(parseModNames(e.target.value)));
+						const list = toModNames(parseModNames(e.target.value), titles);
+						setOwnList(list);
+						dispatch(setModNamesList(list));
 					}}
 					placeholder={"sodium\nlithium\niris"}
 					aria-label="mod names, one per line"

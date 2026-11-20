@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useIncludeDependenciesContext } from "@/app/page";
 import { useAppSelector, useAppStore } from "@/hooks/store";
+import { MAX_MODS_PER_DOWNLOAD } from "@/lib/modsList";
 import {
 	getBlocker,
 	summarizeValidation,
@@ -9,11 +11,17 @@ import {
 } from "@/lib/terminal/logic";
 import { validateModSlugs } from "@/lib/modValidation";
 
-function navigateToDownload(mods: string[], gameVersion: string, modLoader: string) {
+function navigateToDownload(
+	mods: string[],
+	gameVersion: string,
+	modLoader: string,
+	includeDependencies: boolean,
+) {
 	const params = new URLSearchParams({
 		modsList: mods.join("\n"),
 		gameVersion,
 		modLoader,
+		includeDependencies: String(includeDependencies),
 	});
 	window.location.assign(`/api/download-mods?${params.toString()}`);
 }
@@ -23,6 +31,12 @@ export function useTerminalDownload() {
 	const modsList = useAppSelector((state) => state.modNamesList.modNames);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
+	const [includeDependencies] = useIncludeDependenciesContext();
+	// Dependencies live in context, not the store; mirror them for the post-check comparison.
+	const dependenciesRef = useRef(includeDependencies);
+	useEffect(() => {
+		dependenciesRef.current = includeDependencies;
+	}, [includeDependencies]);
 	const [log, setLog] = useState<LogLine[]>([]);
 	const [isChecking, setIsChecking] = useState(false);
 	const [isDetecting, setIsDetectingState] = useState(false);
@@ -41,6 +55,7 @@ export function useTerminalDownload() {
 		modsList: string[];
 		gameVersion: string;
 		modLoader: string;
+		includeDependencies: boolean;
 		reads: number;
 	} | null>(null);
 	// Ignore a pending prompt once the list, version or loader it was validated against changes.
@@ -48,7 +63,8 @@ export function useTerminalDownload() {
 		pending &&
 		pending.modsList === modsList &&
 		pending.gameVersion === gameVersion &&
-		pending.modLoader === modLoader
+		pending.modLoader === modLoader &&
+		pending.includeDependencies === includeDependencies
 			? pending.valid
 			: null;
 
@@ -57,6 +73,7 @@ export function useTerminalDownload() {
 		modLoader,
 		modCount: modsList.length,
 		isDetecting,
+		maxMods: MAX_MODS_PER_DOWNLOAD,
 	});
 
 	const mounted = useRef(true);
@@ -73,9 +90,11 @@ export function useTerminalDownload() {
 		modsList: string[];
 		gameVersion: string;
 		modLoader: string;
+		includeDependencies: boolean;
 		reads: number;
 	}) => {
 		if (detecting.current || readStarts.current !== s.reads) return true;
+		if (dependenciesRef.current !== s.includeDependencies) return true;
 		const now = store.getState();
 		return (
 			now.modNamesList.modNames !== s.modsList ||
@@ -104,13 +123,17 @@ export function useTerminalDownload() {
 		});
 
 		try {
-			const result = await validateModSlugs(modsList);
+			const result = await validateModSlugs(modsList, undefined, {
+				gameVersion,
+				modLoader,
+				includeDependencies,
+			});
 			if (!mounted.current) return;
-			if (setupChangedSince({ modsList, gameVersion, modLoader, reads })) {
+			if (setupChangedSince({ modsList, gameVersion, modLoader, includeDependencies, reads })) {
 				append({ kind: "warn", text: "setup changed during the check. press download again" });
 				return;
 			}
-			const { lines, proceed } = summarizeValidation(result);
+			const { lines, proceed } = summarizeValidation(result, { gameVersion, modLoader });
 			append(...lines);
 
 			if (proceed === "all") {
@@ -118,9 +141,16 @@ export function useTerminalDownload() {
 					kind: "ok",
 					text: `downloading ${result.valid.length} mods as zip…`,
 				});
-				navigateToDownload(result.valid, gameVersion, modLoader);
+				navigateToDownload(result.valid, gameVersion, modLoader, includeDependencies);
 			} else if (proceed === "ask") {
-				setPending({ valid: result.valid, modsList, gameVersion, modLoader, reads });
+				setPending({
+					valid: result.valid,
+					modsList,
+					gameVersion,
+					modLoader,
+					includeDependencies,
+					reads,
+				});
 			}
 		} finally {
 			setIsChecking(false);
@@ -142,7 +172,7 @@ export function useTerminalDownload() {
 			kind: "ok",
 			text: `downloading ${pendingValid.length} mods as zip…`,
 		});
-		navigateToDownload(pendingValid, gameVersion, modLoader);
+		navigateToDownload(pendingValid, gameVersion, modLoader, pending.includeDependencies);
 		setPending(null);
 	};
 
@@ -155,5 +185,6 @@ export function useTerminalDownload() {
 		pendingValid,
 		download,
 		downloadAnyway,
+		append,
 	};
 }

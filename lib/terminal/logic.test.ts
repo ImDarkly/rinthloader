@@ -23,6 +23,7 @@ describe("getBlocker", () => {
   it("loader next", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: null, modCount: 0 })).toBe("pick a mod loader first"));
   it("mods next", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: "fabric", modCount: 0 })).toBe("add at least one mod first"));
   it("waits for jar detection", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: "fabric", modCount: 2, isDetecting: true })).toBe("wait for the jar files to finish reading"));
+  it("caps the download", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: "fabric", modCount: 301, maxMods: 300 })).toBe("too many mods: 301, the limit is 300 per download"));
   it("null when ready", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: "fabric", modCount: 2 })).toBeNull());
 });
 describe("summarizeValidation", () => {
@@ -33,6 +34,10 @@ describe("summarizeValidation", () => {
   it("none valid stops", () => expect(summarizeValidation({ valid: [], invalid: ["x"], errors: [] }).proceed).toBe("none"));
   it("none valid still reports why", () => expect(summarizeValidation({ valid: [], invalid: ["x"], errors: [] }).lines)
     .toEqual([{ kind: "ok", text: "0 found" }, { kind: "warn", text: "1 not found: x" }]));
+  it("unavailable builds ask, with the target named", () => expect(summarizeValidation({ valid: ["a"], invalid: [], errors: [], unavailable: ["b"] }, { gameVersion: "1.21.1", modLoader: "fabric" }))
+    .toEqual({ lines: [{ kind: "ok", text: "1 found" }, { kind: "warn", text: "1 without a fabric 1.21.1 build: b" }], proceed: "ask" }));
+  it("lists added dependencies", () => expect(summarizeValidation({ valid: ["a"], invalid: [], errors: [], dependencies: ["fabric-api"] }))
+    .toEqual({ lines: [{ kind: "ok", text: "1 found" }, { kind: "ok", text: "1 required dependency added: fabric-api" }], proceed: "all" }));
   it("network errors stop", () => expect(summarizeValidation({ valid: ["a"], invalid: [], errors: ["b"] }))
     .toEqual({ lines: [{ kind: "err", text: "couldn't reach modrinth for: b. try again" }], proceed: "none" }));
 });
