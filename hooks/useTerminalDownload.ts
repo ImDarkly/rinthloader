@@ -47,10 +47,10 @@ export function useTerminalDownload(isDetecting = false) {
 	});
 
 	// The setup as it is now, for checking a validation that finished after an edit or unmount.
-	const latest = useRef({ modsList, gameVersion, modLoader, mounted: true });
+	const latest = useRef({ modsList, gameVersion, modLoader, isDetecting, mounted: true });
 	useEffect(() => {
-		latest.current = { ...latest.current, modsList, gameVersion, modLoader };
-	}, [modsList, gameVersion, modLoader]);
+		latest.current = { ...latest.current, modsList, gameVersion, modLoader, isDetecting };
+	}, [modsList, gameVersion, modLoader, isDetecting]);
 	useEffect(() => {
 		const state = latest.current;
 		state.mounted = true;
@@ -82,6 +82,8 @@ export function useTerminalDownload(isDetecting = false) {
 			const now = latest.current;
 			if (!now.mounted) return;
 			if (
+				// A jar read in progress is about to replace the list.
+				now.isDetecting ||
 				now.modsList !== modsList ||
 				now.gameVersion !== gameVersion ||
 				now.modLoader !== modLoader
@@ -108,6 +110,10 @@ export function useTerminalDownload(isDetecting = false) {
 
 	const downloadAnyway = () => {
 		if (!pendingValid || !gameVersion || !modLoader) return;
+		if (isDetecting) {
+			append({ kind: "warn", text: "wait for the jar files to finish reading" });
+			return;
+		}
 		append({
 			kind: "ok",
 			text: `downloading ${pendingValid.length} mods as zip…`,

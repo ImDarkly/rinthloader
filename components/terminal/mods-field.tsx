@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { detectModFiles, type DetectedModFile } from "@/lib/mod-detector";
@@ -34,6 +34,14 @@ export function ModsField({
 	const radioRefs = useRef<Map<ImportMode, HTMLButtonElement>>(new Map());
 	// Only the latest import may write results; edits, mode switches and newer drops bump it.
 	const importId = useRef(0);
+
+	// Leaving the dialog abandons any read still in flight.
+	useEffect(() => {
+		const ids = importId;
+		return () => {
+			ids.current++;
+		};
+	}, []);
 
 	const cancelDetection = () => {
 		importId.current++;
