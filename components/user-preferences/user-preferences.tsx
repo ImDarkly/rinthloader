@@ -10,6 +10,7 @@ import {
 } from "../ui/popover";
 import { SelectModLoader } from "./select-mod-loader";
 import SelectTheme from "./select-theme";
+import ToggleDependencies from "./toggle-dependencies";
 import ToggleSnapshots from "./toggle-snapshots";
 
 export default function UserPreferences() {
@@ -27,6 +28,7 @@ export default function UserPreferences() {
 				</PopoverHeader>
 				<SelectModLoader />
 				<ToggleSnapshots />
+				<ToggleDependencies />
 				<SelectTheme />
 			</PopoverContent>
 		</Popover>
