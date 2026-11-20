@@ -38,7 +38,7 @@ export const getProject = async (name: string) => {
 };
 
 // Mod names like "Fabric API" aren't slugs, so look them up by exact title.
-const findProjectByTitle = async (title: string) => {
+export const findProjectByTitle = async (title: string) => {
   const params = new URLSearchParams({
     query: title,
     facets: JSON.stringify([["project_type:mod"]]),
@@ -56,6 +56,23 @@ const findProjectByTitle = async (title: string) => {
   const normalized = title.trim().toLowerCase();
   return data.hits.find((hit) => hit.title.trim().toLowerCase() === normalized)
     ?.project_id;
+};
+
+// Maps each id or slug Modrinth found, lowercased, to its project id.
+export const getProjects = async (names: string[]) => {
+  const response = await fetch(
+    `https://api.modrinth.com/v2/projects?ids=${encodeURIComponent(JSON.stringify(names))}`,
+    requestInit,
+  );
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+  const projects: { id: string; slug: string }[] = await response.json();
+  const projectIds = new Map<string, string>();
+  for (const project of projects) {
+    projectIds.set(project.id.toLowerCase(), project.id);
+    projectIds.set(project.slug.toLowerCase(), project.id);
+  }
+  return projectIds;
 };
 
 export const getVersion = async (
