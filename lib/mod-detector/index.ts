@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { parse } from "smol-toml";
 import { getProjectSlugsByFileHash } from "@/lib/api";
+import { validateModSlugs } from "@/lib/modValidation";
 
 export type DetectedModFile = {
 	fileName: string;
@@ -47,11 +48,38 @@ export async function detectModFiles(
 		() => new Map<string, string>(),
 	);
 
+	const ids = await getModIdsForMissingNames(
+		results.filter((_, index) => !slugs.has(hashes[index] ?? "")),
+	);
+
 	return results.map((result, index) => {
-		const hash = hashes[index];
-		const slug = hash ? slugs.get(hash) : undefined;
+		const slug = slugs.get(hashes[index] ?? "") ?? ids.get(result);
 		return slug ? { ...result, modName: slug } : result;
 	});
+}
+
+// Display names like "Cloth Config v15" aren't always found on Modrinth, but
+// the mod id is often the slug.
+async function getModIdsForMissingNames(results: DetectedModFile[]) {
+	const ids = new Map<DetectedModFile, string>();
+	const candidates = results.filter(
+		(result) =>
+			result.modName &&
+			result.modId &&
+			result.modName.toLowerCase() !== result.modId.toLowerCase(),
+	);
+	if (!candidates.length) return ids;
+
+	const { invalid } = await validateModSlugs(
+		candidates.map((result) => result.modName!),
+	);
+	const missing = candidates.filter((result) => invalid.includes(result.modName!));
+	const { valid } = await validateModSlugs(missing.map((result) => result.modId!));
+
+	for (const result of missing) {
+		if (valid.includes(result.modId!)) ids.set(result, result.modId!);
+	}
+	return ids;
 }
 
 function asText(value: unknown) {
