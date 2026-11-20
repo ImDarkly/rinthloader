@@ -22,6 +22,7 @@ describe("getBlocker", () => {
   it("version first", () => expect(getBlocker({ gameVersion: null, modLoader: null, modCount: 0 })).toBe("pick a minecraft version first"));
   it("loader next", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: null, modCount: 0 })).toBe("pick a mod loader first"));
   it("mods next", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: "fabric", modCount: 0 })).toBe("add at least one mod first"));
+  it("waits for jar detection", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: "fabric", modCount: 2, isDetecting: true })).toBe("wait for the jar files to finish reading"));
   it("null when ready", () => expect(getBlocker({ gameVersion: "1.21.1", modLoader: "fabric", modCount: 2 })).toBeNull());
 });
 describe("summarizeValidation", () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/hooks/store";
 import {
 	getBlocker,
@@ -18,7 +18,7 @@ function navigateToDownload(mods: string[], gameVersion: string, modLoader: stri
 	window.location.assign(`/api/download-mods?${params.toString()}`);
 }
 
-export function useTerminalDownload() {
+export function useTerminalDownload(isDetecting = false) {
 	const modsList = useAppSelector((state) => state.modNamesList.modNames);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
@@ -43,7 +43,21 @@ export function useTerminalDownload() {
 		gameVersion,
 		modLoader,
 		modCount: modsList.length,
+		isDetecting,
 	});
+
+	// The setup as it is now, for checking a validation that finished after an edit or unmount.
+	const latest = useRef({ modsList, gameVersion, modLoader, mounted: true });
+	useEffect(() => {
+		latest.current = { ...latest.current, modsList, gameVersion, modLoader };
+	}, [modsList, gameVersion, modLoader]);
+	useEffect(() => {
+		const state = latest.current;
+		state.mounted = true;
+		return () => {
+			latest.current.mounted = false;
+		};
+	}, []);
 
 	const append = (...lines: LogLine[]) => {
 		setLog((prev) => [...prev, ...lines]);
@@ -65,6 +79,16 @@ export function useTerminalDownload() {
 
 		try {
 			const result = await validateModSlugs(modsList);
+			const now = latest.current;
+			if (!now.mounted) return;
+			if (
+				now.modsList !== modsList ||
+				now.gameVersion !== gameVersion ||
+				now.modLoader !== modLoader
+			) {
+				append({ kind: "warn", text: "setup changed during the check. press download again" });
+				return;
+			}
 			const { lines, proceed } = summarizeValidation(result);
 			append(...lines);
 

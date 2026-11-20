@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { DialogButton } from "./dialog-button";
 import { FuzzyPicker } from "./fuzzy-picker";
 
 /** A `[ value ▼]` field that opens a fuzzy picker box right under it. */
@@ -11,6 +12,7 @@ export function DropField({
 	items,
 	onPick,
 	extra,
+	failed = false,
 }: {
 	id: string;
 	label: string;
@@ -18,6 +20,8 @@ export function DropField({
 	items: string[];
 	onPick: (v: string) => void;
 	extra?: ReactNode;
+	/** The list request failed; show a retry instead of "loading…". */
+	failed?: boolean;
 }) {
 	const [open, setOpen] = useState(false);
 	const root = useRef<HTMLDivElement>(null);
@@ -95,7 +99,18 @@ export function DropField({
 					}}
 					className="absolute top-full left-0 z-10 mt-1 w-full border-2 border-foreground bg-background p-2 shadow-[6px_6px_0_0_var(--muted-foreground)] sm:left-[calc(6rem+0.75rem)] sm:max-w-xs"
 				>
-					{items.length === 0 ? (
+					{items.length === 0 && failed ? (
+						<div role="alert" className="flex flex-wrap items-center gap-x-2">
+							<span className="text-destructive">couldn&apos;t load the {label} list from modrinth</span>
+							<DialogButton
+								onClick={() => {
+									window.location.reload();
+								}}
+							>
+								retry
+							</DialogButton>
+						</div>
+					) : items.length === 0 ? (
 						<div className="text-muted-foreground">loading…</div>
 					) : (
 						<FuzzyPicker

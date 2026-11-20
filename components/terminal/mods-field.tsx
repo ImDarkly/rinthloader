@@ -16,24 +16,38 @@ const MODES: [ImportMode, string][] = [
 	["manual", "names"],
 ];
 
-export function ModsField() {
+export function ModsField({
+	isDetecting,
+	setIsDetecting,
+}: {
+	isDetecting: boolean;
+	setIsDetecting: (v: boolean) => void;
+}) {
 	const dispatch = useAppDispatch();
 	const importMode = useAppSelector((state) => state.ui.importMode);
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
 	const [results, setResults] = useState<DetectedModFile[]>([]);
-	const [isDetecting, setIsDetecting] = useState(false);
 	const [text, setText] = useState(() =>
 		importMode === "manual" ? modNames.join("\n") : "",
 	);
 	const [error, setError] = useState<string | null>(null);
 	const radioRefs = useRef<Map<ImportMode, HTMLButtonElement>>(new Map());
+	// Only the latest import may write results; edits, mode switches and newer drops bump it.
+	const importId = useRef(0);
+
+	const cancelDetection = () => {
+		importId.current++;
+		setIsDetecting(false);
+	};
 
 	const onDrop = async (files: File[]) => {
 		if (!files.length) return;
+		const id = ++importId.current;
 		setIsDetecting(true);
 		setError(null);
 		try {
 			const detected = await detectModFiles(files);
+			if (id !== importId.current) return;
 			setResults(detected);
 			dispatch(
 				setModNamesList(
@@ -43,10 +57,11 @@ export function ModsField() {
 			// The jar drop now owns the list; names mode re-seeds from it.
 			setText("");
 		} catch {
+			if (id !== importId.current) return;
 			setResults([]);
 			setError("could not read files");
 		} finally {
-			setIsDetecting(false);
+			if (id === importId.current) setIsDetecting(false);
 		}
 	};
 
@@ -61,6 +76,7 @@ export function ModsField() {
 
 	const pickMode = (mode: ImportMode) => {
 		if (mode === importMode) return;
+		cancelDetection();
 		// Switching modes never touches the mod list; only edits do.
 		if (mode === "manual" && !text.trim() && modNames.length > 0) {
 			setText(modNames.join("\n"));
@@ -173,6 +189,7 @@ export function ModsField() {
 					rows={5}
 					value={text}
 					onChange={(e) => {
+						cancelDetection();
 						setText(e.target.value);
 						setResults([]);
 						setError(null);

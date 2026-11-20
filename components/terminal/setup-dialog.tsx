@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { useModrinthLoaders } from "@/hooks/useModrinthLoaders";
 import { useModrinthVersions } from "@/hooks/useModrinthVersions";
@@ -17,12 +18,13 @@ export function SetupDialog() {
 	const dispatch = useAppDispatch();
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
-	const { versions } = useModrinthVersions();
-	const { modLoaders } = useModrinthLoaders();
+	const { versions, isLoading: versionsLoading } = useModrinthVersions();
+	const { modLoaders, isLoading: loadersLoading } = useModrinthLoaders();
 	const [isSnapshotsEnabled, setIsSnapshotsEnabled] = useSnapshotsContext();
-	const download = useTerminalDownload();
+	const [isDetecting, setIsDetecting] = useState(false);
+	const download = useTerminalDownload(isDetecting);
 
-		const versionItems = versions
+	const versionItems = versions
 		.filter(
 			(v) =>
 				v.version_type === "release" ||
@@ -32,6 +34,17 @@ export function SetupDialog() {
 	const loaderItems = modLoaders.map((l) => l.name);
 
 	useRememberedTarget(versions, isSnapshotsEnabled, loaderItems);
+
+	const toggleSnapshots = () => {
+		const next = !isSnapshotsEnabled;
+		setIsSnapshotsEnabled(next);
+		// Hiding snapshots must not leave a hidden snapshot selected.
+		const current = versions.find((v) => v.version === gameVersion);
+		if (!next && current?.version_type === "snapshot") {
+			const latestRelease = versions.find((v) => v.version_type === "release");
+			if (latestRelease) dispatch(setGameVersion(latestRelease.version));
+		}
+	};
 
 	return (
 		<section
@@ -51,13 +64,14 @@ export function SetupDialog() {
 					label="minecraft"
 					value={gameVersion}
 					items={versionItems}
+					failed={!versionsLoading && versions.length === 0}
 					onPick={(v) => dispatch(setGameVersion(v))}
 					extra={
 						<button
 							type="button"
 							role="checkbox"
 							aria-checked={isSnapshotsEnabled}
-							onClick={() => setIsSnapshotsEnabled(!isSnapshotsEnabled)}
+							onClick={toggleSnapshots}
 							className="cursor-pointer px-1 text-muted-foreground outline-none hover:bg-foreground hover:text-background focus-visible:bg-foreground focus-visible:text-background"
 						>
 							<span aria-hidden="true">[{isSnapshotsEnabled ? "X" : " "}] </span>
@@ -70,9 +84,10 @@ export function SetupDialog() {
 					label="loader"
 					value={modLoader}
 					items={loaderItems}
+					failed={!loadersLoading && modLoaders.length === 0}
 					onPick={(v) => dispatch(setModLoader(v))}
 				/>
-				<ModsField />
+				<ModsField isDetecting={isDetecting} setIsDetecting={setIsDetecting} />
 				<StatusLog download={download} />
 			</div>
 

@@ -24,9 +24,11 @@ export function getBlocker(s: {
   gameVersion: string | null;
   modLoader: string | null;
   modCount: number;
+  isDetecting?: boolean;
 }): string | null {
   if (!s.gameVersion) return "pick a minecraft version first";
   if (!s.modLoader) return "pick a mod loader first";
+  if (s.isDetecting) return "wait for the jar files to finish reading";
   if (s.modCount < 1) return "add at least one mod first";
   return null;
 }
