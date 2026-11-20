@@ -1,18 +1,21 @@
 import { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/store";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
-import { setModNamesList } from "@/lib/slices/modNamesListSlice";
+import { setModNamesList, setModTitles } from "@/lib/slices/modNamesListSlice";
 
 export default function usePersistedModList() {
 	const dispatch = useAppDispatch();
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
+	const titles = useAppSelector((state) => state.modNamesList.titles);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const isFirstWrite = useRef(true);
 
 	useEffect(() => {
 		const storedModNames = localStorage.getItem("modNames");
+		const storedTitles = localStorage.getItem("modTitles");
 		const storedModLoader = localStorage.getItem("modLoader");
 		if (storedModNames) dispatch(setModNamesList(JSON.parse(storedModNames)));
+		if (storedTitles) dispatch(setModTitles(JSON.parse(storedTitles)));
 		if (storedModLoader) dispatch(setModLoader(JSON.parse(storedModLoader)));
 	}, [dispatch]);
 
@@ -23,6 +26,7 @@ export default function usePersistedModList() {
 			return;
 		}
 		localStorage.setItem("modNames", JSON.stringify(modNames));
+		localStorage.setItem("modTitles", JSON.stringify(titles));
 		localStorage.setItem("modLoader", JSON.stringify(modLoader));
-	}, [modNames, modLoader]);
+	}, [modNames, titles, modLoader]);
 }
