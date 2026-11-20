@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useAppSelector } from "@/hooks/store";
+import { useAppSelector, useAppStore } from "@/hooks/store";
 import {
 	getBlocker,
 	summarizeValidation,
@@ -19,6 +19,7 @@ function navigateToDownload(mods: string[], gameVersion: string, modLoader: stri
 }
 
 export function useTerminalDownload() {
+	const store = useAppStore();
 	const modsList = useAppSelector((state) => state.modNamesList.modNames);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
@@ -53,18 +54,25 @@ export function useTerminalDownload() {
 		isDetecting,
 	});
 
-	// The setup as it is now, for checking a validation that finished after an edit or unmount.
-	const latest = useRef({ modsList, gameVersion, modLoader, mounted: true });
+	const mounted = useRef(true);
 	useEffect(() => {
-		latest.current = { ...latest.current, modsList, gameVersion, modLoader };
-	}, [modsList, gameVersion, modLoader]);
-	useEffect(() => {
-		const state = latest.current;
-		state.mounted = true;
+		mounted.current = true;
 		return () => {
-			latest.current.mounted = false;
+			mounted.current = false;
 		};
 	}, []);
+
+	// Read the store directly (not render-time values) so a change made a moment ago counts.
+	// A jar read dispatches its new list before it clears the detecting flag.
+	const setupChangedSince = (s: { modsList: string[]; gameVersion: string; modLoader: string }) => {
+		if (detecting.current) return true;
+		const now = store.getState();
+		return (
+			now.modNamesList.modNames !== s.modsList ||
+			now.gameVersion.value !== s.gameVersion ||
+			now.modLoader.value !== s.modLoader
+		);
+	};
 
 	const append = (...lines: LogLine[]) => {
 		setLog((prev) => [...prev, ...lines]);
@@ -86,15 +94,8 @@ export function useTerminalDownload() {
 
 		try {
 			const result = await validateModSlugs(modsList);
-			const now = latest.current;
-			if (!now.mounted) return;
-			if (
-				// A jar read in progress is about to replace the list.
-				detecting.current ||
-				now.modsList !== modsList ||
-				now.gameVersion !== gameVersion ||
-				now.modLoader !== modLoader
-			) {
+			if (!mounted.current) return;
+			if (setupChangedSince({ modsList, gameVersion, modLoader })) {
 				append({ kind: "warn", text: "setup changed during the check. press download again" });
 				return;
 			}
@@ -116,9 +117,14 @@ export function useTerminalDownload() {
 	};
 
 	const downloadAnyway = () => {
-		if (!pendingValid || !gameVersion || !modLoader) return;
+		if (!pending || !pendingValid || !gameVersion || !modLoader) return;
 		if (detecting.current) {
 			append({ kind: "warn", text: "wait for the jar files to finish reading" });
+			return;
+		}
+		if (setupChangedSince(pending)) {
+			setPending(null);
+			append({ kind: "warn", text: "setup changed since the check. press download again" });
 			return;
 		}
 		append({
