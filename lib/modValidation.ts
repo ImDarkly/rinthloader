@@ -8,11 +8,11 @@ import {
 // Blur and download validate the same names, so look each one up once.
 const projectIdCache = new Map<string, Promise<string | undefined>>();
 
-function getCachedProject(slug: string) {
+function getCachedProject(slug: string, lookup = getProject) {
   const key = slug.toLowerCase();
   let projectId = projectIdCache.get(key);
   if (!projectId) {
-    projectId = getProject(slug);
+    projectId = lookup(slug);
     projectIdCache.set(key, projectId);
     projectId.catch(() => projectIdCache.delete(key));
   }
@@ -42,16 +42,32 @@ function prefetchProjects(slugs: string[]) {
   for (let i = 0; i < entries.length; i += bulkLimit) {
     const chunk = entries.slice(i, i + bulkLimit);
     const found = getProjects(chunk.map(([, slug]) => slug));
-    for (const [key, slug] of chunk) {
-      const projectId = found.then(
-        (projectIds) => projectIds.get(key) ?? findProjectByTitle(slug),
-      );
-      projectIdCache.set(key, projectId);
+    for (const [key] of chunk) {
+      const projectId = found.then((projectIds) => projectIds.get(key));
+      // A worker awaits this later; mark it handled so a failed bulk
+      // request isn't reported as unhandled in the meantime.
+      projectId.catch(() => {});
       prefetched.set(key, projectId);
-      projectId.catch(() => projectIdCache.delete(key));
     }
   }
   return prefetched;
+}
+
+// Names the bulk request missed fall back to title search here, inside the
+// caller's concurrency limit.
+async function resolveProject(
+  slug: string,
+  prefetched: Map<string, Promise<string | undefined>>,
+) {
+  const key = slug.toLowerCase();
+  const bulk = prefetched.get(key);
+  if (!bulk) return getCachedProject(slug);
+
+  const projectId = await bulk;
+  if (!projectId) return getCachedProject(slug, findProjectByTitle);
+
+  projectIdCache.set(key, Promise.resolve(projectId));
+  return projectId;
 }
 
 export async function validateModSlugs(
@@ -78,8 +94,7 @@ export async function validateModSlugs(
     const results = await Promise.all(
       chunk.map(async (slug) => {
         try {
-          const projectId = await (prefetched.get(slug.toLowerCase()) ??
-            getCachedProject(slug));
+          const projectId = await resolveProject(slug, prefetched);
           if (!projectId) return { slug, status: "invalid" };
           if (!target) return { slug, status: "valid" };
 
