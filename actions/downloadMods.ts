@@ -7,6 +7,7 @@ export async function downloadMods(
   modsList: string,
   gameVersion: string,
   modLoader: string,
+  includeDependencies = true,
   onProgress?: (p: number) => void,
   concurrencyLimit = 5,
 ) {
@@ -39,9 +40,14 @@ export async function downloadMods(
     const file = version?.file;
     if (!file) return;
 
-    for (const dependency of version.dependencies) {
-      if (dependency.dependency_type === "required" && dependency.project_id) {
-        queue.push(dependency.project_id);
+    if (includeDependencies) {
+      for (const dependency of version.dependencies) {
+        if (
+          dependency.dependency_type === "required" &&
+          dependency.project_id
+        ) {
+          queue.push(dependency.project_id);
+        }
       }
     }
 
