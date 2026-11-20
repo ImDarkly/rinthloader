@@ -53,7 +53,7 @@ export function SetupDialog() {
 				id="setup-title"
 				className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-background px-2 whitespace-nowrap"
 			>
-				<span className="text-primary">rinth</span>loader setup
+				<span className="text-primary">rinth</span>loader
 			</div>
 
 			<div className="flex flex-col gap-2">
