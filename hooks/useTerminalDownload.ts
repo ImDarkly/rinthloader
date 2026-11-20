@@ -28,7 +28,11 @@ export function useTerminalDownload() {
 	const [isDetecting, setIsDetectingState] = useState(false);
 	// Set in the same tick a jar read starts, so a check finishing right after still sees it.
 	const detecting = useRef(false);
+	// Counts jar reads started; any read starting after a check began makes that check stale,
+	// even if the read is later cancelled.
+	const readStarts = useRef(0);
 	const setIsDetecting = (v: boolean) => {
+		if (v) readStarts.current++;
 		detecting.current = v;
 		setIsDetectingState(v);
 	};
@@ -37,6 +41,7 @@ export function useTerminalDownload() {
 		modsList: string[];
 		gameVersion: string;
 		modLoader: string;
+		reads: number;
 	} | null>(null);
 	// Ignore a pending prompt once the list, version or loader it was validated against changes.
 	const pendingValid =
@@ -64,8 +69,13 @@ export function useTerminalDownload() {
 
 	// Read the store directly (not render-time values) so a change made a moment ago counts.
 	// A jar read dispatches its new list before it clears the detecting flag.
-	const setupChangedSince = (s: { modsList: string[]; gameVersion: string; modLoader: string }) => {
-		if (detecting.current) return true;
+	const setupChangedSince = (s: {
+		modsList: string[];
+		gameVersion: string;
+		modLoader: string;
+		reads: number;
+	}) => {
+		if (detecting.current || readStarts.current !== s.reads) return true;
 		const now = store.getState();
 		return (
 			now.modNamesList.modNames !== s.modsList ||
@@ -87,6 +97,7 @@ export function useTerminalDownload() {
 
 		setPending(null);
 		setIsChecking(true);
+		const reads = readStarts.current;
 		append({
 			kind: "info",
 			text: `checking ${modsList.length} mods on modrinth for ${modLoader} ${gameVersion}…`,
@@ -95,7 +106,7 @@ export function useTerminalDownload() {
 		try {
 			const result = await validateModSlugs(modsList);
 			if (!mounted.current) return;
-			if (setupChangedSince({ modsList, gameVersion, modLoader })) {
+			if (setupChangedSince({ modsList, gameVersion, modLoader, reads })) {
 				append({ kind: "warn", text: "setup changed during the check. press download again" });
 				return;
 			}
@@ -109,7 +120,7 @@ export function useTerminalDownload() {
 				});
 				navigateToDownload(result.valid, gameVersion, modLoader);
 			} else if (proceed === "ask") {
-				setPending({ valid: result.valid, modsList, gameVersion, modLoader });
+				setPending({ valid: result.valid, modsList, gameVersion, modLoader, reads });
 			}
 		} finally {
 			setIsChecking(false);
