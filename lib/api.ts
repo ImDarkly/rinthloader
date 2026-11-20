@@ -84,12 +84,6 @@ export const getVersion = async (
   };
 };
 
-export const getFile = async (
-  id: string,
-  modLoader: string,
-  gameVersion: string,
-) => (await getVersion(id, modLoader, gameVersion))?.file;
-
 export const getProjects = async (ids: string[]) => {
   const response = await fetch(
     `https://api.modrinth.com/v2/projects?ids=${encodeURIComponent(JSON.stringify(ids))}`,
