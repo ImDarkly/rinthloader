@@ -28,7 +28,9 @@ export function DialogButton({
 				className,
 			)}
 		>
-			&lt; {children} &gt;
+			<span aria-hidden="true">&lt; </span>
+			{children}
+			<span aria-hidden="true"> &gt;</span>
 		</button>
 	);
 }

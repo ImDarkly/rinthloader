@@ -22,9 +22,7 @@ export function SetupDialog() {
 	const [isSnapshotsEnabled, setIsSnapshotsEnabled] = useSnapshotsContext();
 	const download = useTerminalDownload();
 
-	useRememberedTarget(versions, isSnapshotsEnabled);
-
-	const versionItems = versions
+		const versionItems = versions
 		.filter(
 			(v) =>
 				v.version_type === "release" ||
@@ -33,9 +31,10 @@ export function SetupDialog() {
 		.map((v) => v.version);
 	const loaderItems = modLoaders.map((l) => l.name);
 
+	useRememberedTarget(versions, isSnapshotsEnabled, loaderItems);
+
 	return (
-		<div
-			role="dialog"
+		<section
 			aria-labelledby="setup-title"
 			className="relative w-full max-w-xl border-4 border-double border-foreground bg-background px-5 pt-6 pb-4 shadow-[10px_10px_0_0_var(--muted-foreground)]"
 		>
@@ -61,7 +60,8 @@ export function SetupDialog() {
 							onClick={() => setIsSnapshotsEnabled(!isSnapshotsEnabled)}
 							className="cursor-pointer px-1 text-muted-foreground outline-none hover:bg-foreground hover:text-background focus-visible:bg-foreground focus-visible:text-background"
 						>
-							[{isSnapshotsEnabled ? "X" : " "}] snapshots
+							<span aria-hidden="true">[{isSnapshotsEnabled ? "X" : " "}] </span>
+							snapshots
 						</button>
 					}
 				/>
@@ -85,6 +85,6 @@ export function SetupDialog() {
 					download
 				</DialogButton>
 			</div>
-		</div>
+		</section>
 	);
 }

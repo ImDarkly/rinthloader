@@ -34,7 +34,7 @@ export default function TerminalFooter({ onClassic }: { onClassic?: () => void }
 			<button
 				type="button"
 				onClick={() => setTheme(next)}
-				aria-label={`theme: ${current}, switch to ${next}`}
+				aria-label={`theme:${current}, switch to ${next}`}
 				className={linkClass}
 			>
 				theme:{current}

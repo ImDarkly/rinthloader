@@ -82,6 +82,7 @@ export function FuzzyPicker({
 					}}
 					placeholder="type to filter"
 					role="combobox"
+					aria-autocomplete="list"
 					aria-expanded="true"
 					aria-controls={`${id}-list`}
 					aria-activedescendant={hasMatches ? `${id}-${active}` : undefined}
@@ -92,7 +93,7 @@ export function FuzzyPicker({
 			</div>
 			<div className="text-muted-foreground">
 				{"  "}
-				{filtered.length}/{items.length} ────────────
+				{filtered.length}/{items.length} <span aria-hidden="true">────────────</span>
 			</div>
 			<ul id={`${id}-list`} role="listbox" aria-label={label} className="flex flex-col">
 				{visible.map((item, i) => {

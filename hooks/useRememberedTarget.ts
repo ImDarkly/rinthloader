@@ -6,21 +6,29 @@ import { setGameVersion } from "@/lib/slices/gameVersionSlice";
 import { setModLoader } from "@/lib/slices/modLoaderSlice";
 import {
 	parseRememberedTarget,
-	resolveRememberedVersion,
+	resolveRestoredVersion,
 } from "@/lib/terminal/logic";
 import type { Version } from "@/lib/types";
 
 const STORAGE_KEY = "rinthloader:target";
 
-export function useRememberedTarget(versions: Version[], snapshots: boolean) {
+// Restore only once per page load: SetupDialog remounts on classic <-> terminal,
+// and a later restore would overwrite what the user picked in the classic view.
+let hasRestored = false;
+
+export function useRememberedTarget(
+	versions: Version[],
+	snapshots: boolean,
+	loaders: string[],
+) {
 	const dispatch = useAppDispatch();
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
-	const [restored, setRestored] = useState(false);
+	const [restored, setRestored] = useState(hasRestored);
 
 	// Restore once, after the versions have loaded.
 	useEffect(() => {
-		if (restored || versions.length === 0) return;
+		if (restored || versions.length === 0 || loaders.length === 0) return;
 
 		let raw: string | null = null;
 		try {
@@ -36,14 +44,22 @@ export function useRememberedTarget(versions: Version[], snapshots: boolean) {
 		const latestRelease =
 			versions.find((v) => v.version_type === "release")?.version ?? null;
 
-		const version = resolveRememberedVersion(remembered.version, available, latestRelease);
-		if (version) dispatch(setGameVersion(version));
-		if (remembered.loader) dispatch(setModLoader(remembered.loader));
+		const version = resolveRestoredVersion(
+			gameVersion,
+			remembered.version,
+			available,
+			latestRelease,
+		);
+		if (version && version !== gameVersion) dispatch(setGameVersion(version));
+		if (remembered.loader && loaders.includes(remembered.loader)) {
+			dispatch(setModLoader(remembered.loader));
+		}
+		hasRestored = true;
 
 		// Gate writes until the saved value has been read.
 		// eslint-disable-next-line react-hooks/set-state-in-effect
 		setRestored(true);
-	}, [restored, versions, snapshots, dispatch]);
+	}, [restored, versions, snapshots, loaders, gameVersion, dispatch]);
 
 	// Persist every change after the initial restore.
 	useEffect(() => {

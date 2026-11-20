@@ -70,11 +70,15 @@ export function DropField({
 					type="button"
 					aria-haspopup="listbox"
 					aria-expanded={open}
-					aria-labelledby={`${id}-label ${id}-btn`}
+					aria-labelledby={`${id}-label ${id}-value`}
 					onClick={() => setOpen((o) => !o)}
 					className="cursor-pointer outline-none hover:bg-foreground hover:text-background focus-visible:bg-foreground focus-visible:text-background"
 				>
-					[ <span className="inline-block w-[14ch] text-left">{value ?? "select"}</span>▼]
+					<span aria-hidden="true">[ </span>
+					<span id={`${id}-value`} className="inline-block w-[14ch] text-left">
+						{value ?? "select"}
+					</span>
+					<span aria-hidden="true">▼]</span>
 				</button>
 				{extra}
 			</div>

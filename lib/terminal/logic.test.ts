@@ -6,6 +6,7 @@ import {
   summarizeValidation,
   parseRememberedTarget,
   resolveRememberedVersion,
+  resolveRestoredVersion,
 } from "./logic";
 
 describe("filterItems", () => {
@@ -46,4 +47,16 @@ describe("resolveRememberedVersion", () => {
   it("keeps available", () => expect(resolveRememberedVersion("1.20.1", ["1.21.1", "1.20.1"], "1.21.1")).toBe("1.20.1"));
   it("falls back when missing", () => expect(resolveRememberedVersion("25w01a", ["1.21.1"], "1.21.1")).toBe("1.21.1"));
   it("falls back when none remembered", () => expect(resolveRememberedVersion(undefined, ["1.21.1"], "1.21.1")).toBe("1.21.1"));
+});
+
+describe("resolveRestoredVersion", () => {
+  const avail = ["1.21.1", "1.20.1"];
+  it("keeps the current version when available", () =>
+    expect(resolveRestoredVersion("1.20.1", "1.21.1", avail, "1.21.1")).toBe("1.20.1"));
+  it("falls back to remembered when current is unavailable", () =>
+    expect(resolveRestoredVersion("1.8", "1.20.1", avail, "1.21.1")).toBe("1.20.1"));
+  it("uses remembered when nothing is current", () =>
+    expect(resolveRestoredVersion(null, "1.20.1", avail, "1.21.1")).toBe("1.20.1"));
+  it("falls back to latest release", () =>
+    expect(resolveRestoredVersion("1.8", "9.9", avail, "1.21.1")).toBe("1.21.1"));
 });

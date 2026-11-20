@@ -75,3 +75,14 @@ export function resolveRememberedVersion(
   if (remembered && available.includes(remembered)) return remembered;
   return latestRelease;
 }
+
+/** Version to select on restore: keep what's already chosen, else remembered, else latest. */
+export function resolveRestoredVersion(
+  current: string | null,
+  remembered: string | undefined,
+  available: string[],
+  latestRelease: string | null,
+): string | null {
+  if (current && available.includes(current)) return current;
+  return resolveRememberedVersion(remembered, available, latestRelease);
+}

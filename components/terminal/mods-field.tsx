@@ -22,7 +22,9 @@ export function ModsField() {
 	const modNames = useAppSelector((state) => state.modNamesList.modNames);
 	const [results, setResults] = useState<DetectedModFile[]>([]);
 	const [isDetecting, setIsDetecting] = useState(false);
-	const [text, setText] = useState("");
+	const [text, setText] = useState(() =>
+		importMode === "manual" ? modNames.join("\n") : "",
+	);
 	const [error, setError] = useState<string | null>(null);
 	const radioRefs = useRef<Partial<Record<ImportMode, HTMLButtonElement | null>>>({});
 
@@ -99,7 +101,8 @@ export function ModsField() {
 							onClick={() => pickMode(value)}
 							className="cursor-pointer px-1 outline-none hover:bg-foreground hover:text-background focus-visible:bg-foreground focus-visible:text-background"
 						>
-							({importMode === value ? "•" : " "}) {label}
+							<span aria-hidden="true">({importMode === value ? "•" : " "}) </span>
+							{label}
 						</button>
 					))}
 				</div>
@@ -109,7 +112,9 @@ export function ModsField() {
 						count > 0 ? "text-primary" : "text-muted-foreground",
 					)}
 				>
-					{count > 0 ? `✓ ${count}` : "○ 0"}
+					<span aria-hidden="true">{count > 0 ? "✓ " : "○ "}</span>
+					{count}
+					<span className="sr-only"> {count === 1 ? "mod" : "mods"}</span>
 				</span>
 			</div>
 
@@ -129,7 +134,11 @@ export function ModsField() {
 					<div aria-live="polite">
 						{isDetecting && <div>detecting…</div>}
 						{!isDetecting && error && (
-							<div className="text-destructive">✗ {error}</div>
+							<div className="text-destructive">
+								<span aria-hidden="true">✗ </span>
+								<span className="sr-only">error: </span>
+								{error}
+							</div>
 						)}
 						{!isDetecting && !error && results.length > 0 && (
 							<ul className="flex flex-col gap-0.5">
@@ -138,12 +147,12 @@ export function ModsField() {
 										key={r.fileName}
 										className={cn(
 											"break-words",
-											!r.modName && "text-amber-600 dark:text-amber-400",
+											!r.modName && "text-amber-700 dark:text-amber-400",
 										)}
 									>
-										{r.modName
-											? `✓ ${r.modName}`
-											: `! ${r.fileName}  no mod name found`}
+										<span aria-hidden="true">{r.modName ? "✓ " : "! "}</span>
+										{!r.modName && <span className="sr-only">warning: </span>}
+										{r.modName ?? `${r.fileName}  no mod name found`}
 									</li>
 								))}
 							</ul>
