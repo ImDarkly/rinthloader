@@ -26,7 +26,7 @@ export function ModsField() {
 		importMode === "manual" ? modNames.join("\n") : "",
 	);
 	const [error, setError] = useState<string | null>(null);
-	const radioRefs = useRef(new Map<ImportMode, HTMLButtonElement>());
+	const radioRefs = useRef<Map<ImportMode, HTMLButtonElement>>(new Map());
 
 	const onDrop = async (files: File[]) => {
 		if (!files.length) return;
