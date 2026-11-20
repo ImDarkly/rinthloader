@@ -1,10 +1,12 @@
 import JSZip from "jszip";
 import { parse } from "smol-toml";
 import { getProjectSlugsByFileHash } from "@/lib/api";
+import { validateModSlugs } from "@/lib/modValidation";
 
 export type DetectedModFile = {
 	fileName: string;
 	modName: string | null;
+	modId: string | null;
 	modLoader: string | null;
 };
 
@@ -21,16 +23,22 @@ export async function detectModFiles(
 			hash = await sha1(buffer).catch(() => null);
 			const zip = await JSZip.loadAsync(buffer);
 
-			const { name, modLoader } = await readModMetadata(zip);
-			const modName =
-				typeof name === "string" && name.trim() ? name.trim() : null;
+			const { name, id, modLoader } = await readModMetadata(zip);
+			const modId = asText(id);
+			const modName = asText(name) ?? modId;
 			results.push({
 				fileName: file.name,
 				modName,
+				modId,
 				modLoader: modName ? modLoader : null,
 			});
 		} catch {
-			results.push({ fileName: file.name, modName: null, modLoader: null });
+			results.push({
+				fileName: file.name,
+				modName: null,
+				modId: null,
+				modLoader: null,
+			});
 		}
 		hashes.push(hash);
 	}
@@ -40,11 +48,42 @@ export async function detectModFiles(
 		() => new Map<string, string>(),
 	);
 
+	const ids = await getModIdsForMissingNames(
+		results.filter((_, index) => !slugs.has(hashes[index] ?? "")),
+	);
+
 	return results.map((result, index) => {
-		const hash = hashes[index];
-		const slug = hash ? slugs.get(hash) : undefined;
+		const slug = slugs.get(hashes[index] ?? "") ?? ids.get(result);
 		return slug ? { ...result, modName: slug } : result;
 	});
+}
+
+// Display names like "Cloth Config v15" aren't always found on Modrinth, but
+// the mod id is often the slug.
+async function getModIdsForMissingNames(results: DetectedModFile[]) {
+	const ids = new Map<DetectedModFile, string>();
+	const candidates = results.filter(
+		(result) =>
+			result.modName &&
+			result.modId &&
+			result.modName.toLowerCase() !== result.modId.toLowerCase(),
+	);
+	if (!candidates.length) return ids;
+
+	const { invalid } = await validateModSlugs(
+		candidates.map((result) => result.modName!),
+	);
+	const missing = candidates.filter((result) => invalid.includes(result.modName!));
+	const { valid } = await validateModSlugs(missing.map((result) => result.modId!));
+
+	for (const result of missing) {
+		if (valid.includes(result.modId!)) ids.set(result, result.modId!);
+	}
+	return ids;
+}
+
+function asText(value: unknown) {
+	return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 async function sha1(buffer: ArrayBuffer) {
@@ -56,17 +95,21 @@ async function sha1(buffer: ArrayBuffer) {
 
 async function readModMetadata(
 	zip: JSZip,
-): Promise<{ name: unknown; modLoader: string | null }> {
+): Promise<{ name: unknown; id: unknown; modLoader: string | null }> {
 	const fabricFile = zip.file("fabric.mod.json");
 	if (fabricFile) {
 		const data = JSON.parse(await fabricFile.async("string"));
-		return { name: data.name ?? data.id, modLoader: "fabric" };
+		return { name: data.name, id: data.id, modLoader: "fabric" };
 	}
 
 	const quiltFile = zip.file("quilt.mod.json");
 	if (quiltFile) {
 		const loader = JSON.parse(await quiltFile.async("string")).quilt_loader;
-		return { name: loader?.metadata?.name ?? loader?.id, modLoader: "quilt" };
+		return {
+			name: loader?.metadata?.name,
+			id: loader?.id,
+			modLoader: "quilt",
+		};
 	}
 
 	const neoForgeFile = zip.file("META-INF/neoforge.mods.toml");
@@ -80,12 +123,13 @@ async function readModMetadata(
 		const isPlaceholder =
 			typeof mod?.displayName === "string" && mod.displayName.includes("${");
 		return {
-			name: isPlaceholder ? mod?.modId : (mod?.displayName ?? mod?.modId),
+			name: isPlaceholder ? null : mod?.displayName,
+			id: mod?.modId,
 			modLoader: neoForgeFile ? "neoforge" : "forge",
 		};
 	}
 
-	return { name: null, modLoader: null };
+	return { name: null, id: null, modLoader: null };
 }
 
 export function getMostCommonModLoader(
