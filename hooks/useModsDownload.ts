@@ -18,11 +18,8 @@ export function useModsDownload() {
 		setIsDownloading(true);
 
 		try {
-			const { valid, invalid, unavailable, errors } = await validateModSlugs(
-				modsList,
-				undefined,
-				{ gameVersion, modLoader },
-			);
+			const { valid, invalid, unavailable, errors, dependencies } =
+				await validateModSlugs(modsList, undefined, { gameVersion, modLoader });
 
 			if (errors.length > 0) {
 				toast.error("Network error", {
@@ -46,6 +43,13 @@ export function useModsDownload() {
 			}
 
 			if (valid.length === 0) return;
+
+			if (dependencies.length > 0) {
+				toast.info(
+					`${dependencies.length} required ${dependencies.length === 1 ? "dependency" : "dependencies"} added`,
+					{ description: dependencies.join(", ") },
+				);
+			}
 
 			const params = new URLSearchParams({
 				modsList: valid.join("\n"),
