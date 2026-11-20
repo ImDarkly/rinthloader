@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { filterItems } from "@/lib/terminal/logic";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +50,60 @@ export function FuzzyPicker({
 		setCursor(c);
 		setWinStart(windowStart(start, c, filtered.length, rows));
 	};
+	// Wheel/touch scroll the window by whole rows; the cursor is pulled along to stay visible.
+	const scrollRows = (delta: number) => {
+		const maxStart = Math.max(0, filtered.length - rows);
+		const s = Math.max(0, Math.min(start + delta, maxStart));
+		if (s === start) return;
+		setWinStart(s);
+		setCursor(Math.max(s, Math.min(active, s + rows - 1)));
+	};
+	const scrollRef = useRef(scrollRows);
+	useEffect(() => {
+		scrollRef.current = scrollRows;
+	});
+
+	// Native listeners: React's wheel/touch handlers are passive and can't stop the page scrolling.
+	const listRef = useRef<HTMLUListElement>(null);
+	useEffect(() => {
+		const el = listRef.current;
+		if (!el) return;
+		const ROW_PX = 24;
+		let acc = 0;
+		let lastY: number | null = null;
+		const step = (px: number) => {
+			acc += px;
+			const n = Math.trunc(acc / ROW_PX);
+			if (n !== 0) {
+				acc -= n * ROW_PX;
+				scrollRef.current(n);
+			}
+		};
+		const onWheel = (e: WheelEvent) => {
+			e.preventDefault();
+			step(e.deltaMode === 1 ? e.deltaY * ROW_PX : e.deltaY);
+		};
+		const onTouchStart = (e: TouchEvent) => {
+			lastY = e.touches[0]?.clientY ?? null;
+			acc = 0;
+		};
+		const onTouchMove = (e: TouchEvent) => {
+			const y = e.touches[0]?.clientY;
+			if (y === undefined || lastY === null) return;
+			e.preventDefault();
+			step(lastY - y);
+			lastY = y;
+		};
+		el.addEventListener("wheel", onWheel, { passive: false });
+		el.addEventListener("touchstart", onTouchStart, { passive: true });
+		el.addEventListener("touchmove", onTouchMove, { passive: false });
+		return () => {
+			el.removeEventListener("wheel", onWheel);
+			el.removeEventListener("touchstart", onTouchStart);
+			el.removeEventListener("touchmove", onTouchMove);
+		};
+	}, []);
+
 	const visible = filtered.slice(start, start + rows);
 	const hasMatches = filtered.length > 0;
 
@@ -96,7 +150,13 @@ export function FuzzyPicker({
 				{"  "}
 				{filtered.length}/{items.length} <span aria-hidden="true">────────────</span>
 			</div>
-			<ul id={`${id}-list`} role="listbox" aria-label={label} className="flex flex-col">
+			<ul
+				ref={listRef}
+				id={`${id}-list`}
+				role="listbox"
+				aria-label={label}
+				className="flex touch-none flex-col overscroll-contain"
+			>
 				{visible.map((item, i) => {
 					const idx = start + i;
 					const isActive = idx === active;
