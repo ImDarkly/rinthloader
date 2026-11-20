@@ -9,17 +9,21 @@ import {
 	PopoverTrigger,
 } from "../ui/popover";
 import TerminalSelectTheme from "./terminal-select-theme";
+import TerminalToggleDependencies from "./terminal-toggle-dependencies";
 import TerminalToggleSnapshots from "./terminal-toggle-snapshots";
-import { useSnapshotsContext } from "@/app/page";
+import { useIncludeDependenciesContext, useSnapshotsContext } from "@/app/page";
 
 export default function TerminalSettingsControl() {
 	const [isSnapshotsEnabled] = useSnapshotsContext();
+	const [includeDependencies] = useIncludeDependenciesContext();
 	const { theme } = useTheme();
 	const currentTheme = theme ?? "system";
 
 	return (
 		<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
 			<span>snapshots {isSnapshotsEnabled ? "on" : "off"}</span>
+			<span aria-hidden="true">·</span>
+			<span>dependencies {includeDependencies ? "on" : "off"}</span>
 			<span aria-hidden="true">·</span>
 			<span>theme {currentTheme}</span>
 			<Popover>
@@ -38,6 +42,7 @@ export default function TerminalSettingsControl() {
 						<PopoverTitle>settings</PopoverTitle>
 					</PopoverHeader>
 					<TerminalToggleSnapshots compact />
+					<TerminalToggleDependencies compact />
 					<TerminalSelectTheme compact />
 				</PopoverContent>
 			</Popover>

@@ -78,7 +78,11 @@ async function resolveProject(
   return projectId;
 }
 
-type Target = { gameVersion: string; modLoader: string };
+type Target = {
+  gameVersion: string;
+  modLoader: string;
+  includeDependencies?: boolean;
+};
 
 const requiredIds = (dependencies: ModDependency[]) =>
   dependencies.flatMap((dependency) =>
@@ -174,7 +178,7 @@ export async function validateModSlugs(
   }
 
   let dependencies: string[] = [];
-  if (target && errors.length === 0) {
+  if (target && target.includeDependencies !== false && errors.length === 0) {
     try {
       dependencies = await findAddedDependencies(validIds, dependencyIds, target);
     } catch {

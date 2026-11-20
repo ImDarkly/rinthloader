@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useIncludeDependenciesContext } from "@/app/page";
 import { useAppSelector } from "@/hooks/store";
 import { validateModSlugs } from "@/lib/modValidation";
 import { MAX_MODS_PER_DOWNLOAD } from "@/lib/modsList";
@@ -10,6 +11,7 @@ export function useModsDownload() {
 	const modsList = useAppSelector((state) => state.modNamesList.modNames);
 	const modLoader = useAppSelector((state) => state.modLoader.value);
 	const gameVersion = useAppSelector((state) => state.gameVersion.value);
+	const [includeDependencies] = useIncludeDependenciesContext();
 	const [isDownloading, setIsDownloading] = useState(false);
 	const isReady = Boolean(modsList.length && gameVersion && modLoader);
 
@@ -27,7 +29,11 @@ export function useModsDownload() {
 
 		try {
 			const { valid, invalid, unavailable, errors, dependencies } =
-				await validateModSlugs(modsList, undefined, { gameVersion, modLoader });
+				await validateModSlugs(modsList, undefined, {
+					gameVersion,
+					modLoader,
+					includeDependencies,
+				});
 
 			if (errors.length > 0) {
 				toast.error("Network error", {
@@ -63,6 +69,7 @@ export function useModsDownload() {
 				modsList: valid.join("\n"),
 				gameVersion,
 				modLoader,
+				includeDependencies: String(includeDependencies),
 			});
 			window.location.href = `/api/download-mods?${params.toString()}`;
 		} finally {
